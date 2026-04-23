@@ -1,4 +1,4 @@
-# Omsai Billing Software 🌟
+# Offline Billing Software 
 
 A professional, high-performance Windows desktop application for mobile retail shops to manage GST billing and inventory.
 
@@ -26,4 +26,4 @@ To generate the standalone executable:
 Use the included `installer_script.iss` with **Inno Setup** to create a professional `Setup.exe` for your clients.
 
 ---
-*Developed & Engineered by ScaleAd*
+*Developed & Engineered by Sourabh*
