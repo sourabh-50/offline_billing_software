@@ -1,0 +1,6 @@
+customtkinter
+reportlab
+pandas
+openpyxl
+pyinstaller
+tkcalendar

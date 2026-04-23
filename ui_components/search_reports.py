@@ -1,0 +1,228 @@
+import customtkinter as ctk
+import tkinter.messagebox as messagebox
+from tkinter import ttk
+import os
+import subprocess
+import database
+import exporter
+from ui_components.autocomplete import ctkAutocompleteEntry
+from datetime import datetime, timedelta
+
+class SearchFrame(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent, fg_color="transparent")
+        
+        # Header Area
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(0, 25))
+        
+        hdr = ctk.CTkLabel(header_frame, text="Search Saved Bills", font=("Helvetica", 32, "bold"))
+        hdr.pack(anchor="w")
+        sub_hdr = ctk.CTkLabel(header_frame, text="Find and open your saved shop bills", font=("Helvetica", 14), text_color=("gray50", "gray70"))
+        sub_hdr.pack(anchor="w", pady=(5, 0))
+        
+        search_bar = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
+        search_bar.pack(fill="x", pady=(0, 15))
+        
+        self.entry_query = ctk.CTkEntry(search_bar, placeholder_text="Search by Name, Mobile, or ID...", width=450, height=45, font=("Helvetica", 14))
+        self.entry_query.pack(side="left", padx=25, pady=20)
+        self.entry_query.bind("<Return>", lambda e: self.do_search())
+        
+        self.search_btn = ctk.CTkButton(search_bar, text="Search", font=("Helvetica", 14, "bold"), height=45, width=150, command=self.do_search)
+        self.search_btn.pack(side="left", padx=(0, 25), pady=20)
+
+        # High-Contrast Table Container
+        table_container = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
+        table_container.pack(fill="both", expand=True, pady=10)
+        
+        cols = ("Bill No", "Customer", "Date", "Amount")
+        self.tree = ttk.Treeview(table_container, columns=cols, show="headings")
+        for c in cols:
+            self.tree.heading(c, text=c.upper())
+            self.tree.column(c, width=150, anchor="center")
+            
+        self.tree.pack(fill="both", expand=True, padx=2, pady=2)
+        self.tree.bind("<Double-1>", self.on_double_click)
+        
+        self.results_data = []
+
+    def update_table_style(self):
+        mode = ctk.get_appearance_mode()
+        bg_col = "#1e1e1e" if mode == "Dark" else "#ffffff"
+        fg_col = "#ffffff" if mode == "Dark" else "#000000"
+        head_bg = "#2d2d2d" if mode == "Dark" else "#f1f5f9"
+        
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure("Treeview", 
+                        background=bg_col, 
+                        foreground=fg_col, 
+                        fieldbackground=bg_col, 
+                        rowheight=45,
+                        font=("Helvetica", 11),
+                        borderwidth=0)
+        style.configure("Treeview.Heading", 
+                        background=head_bg, 
+                        foreground=fg_col, 
+                        font=("Helvetica", 12, "bold"),
+                        borderwidth=0)
+        style.map("Treeview", background=[('selected', '#3b82f6')], foreground=[('selected', '#ffffff')])
+
+        self.tree.bind("<Double-1>", self.on_double_click)
+        
+        self.results_data = []
+
+    def do_search(self):
+        self.update_table_style()
+        query = self.entry_query.get()
+        self.results_data = database.search_invoices(query)
+        self.tree.delete(*self.tree.get_children())
+        for row in self.results_data:
+            self.tree.insert("", "end", values=(row[0], row[1], row[2], f"₹ {row[3]:,.2f}"))
+
+    def on_double_click(self, event):
+        item = self.tree.selection()
+        if not item: return
+        item_idx = self.tree.index(item[0])
+        pdf_path = self.results_data[item_idx][4]
+        
+        if os.path.exists(pdf_path):
+            if os.name == 'nt':
+                os.startfile(pdf_path)
+            else:
+                import sys
+                subprocess.call(["open" if sys.platform == "darwin" else "xdg-open", pdf_path])
+        else:
+            messagebox.showerror("Error", f"Bill file not found:\n{pdf_path}")
+
+class ReportsFrame(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent, fg_color="transparent")
+        
+        # Header Area
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(0, 25))
+        
+        hdr = ctk.CTkLabel(header_frame, text="Sales Reports", font=("Helvetica", 32, "bold"))
+        hdr.pack(anchor="w")
+        sub_hdr = ctk.CTkLabel(header_frame, text="Configure and export your sales intelligence", font=("Helvetica", 14), text_color=("gray50", "gray70"))
+        sub_hdr.pack(anchor="w", pady=(5, 0))
+        
+        config_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
+        config_card.pack(fill="x", pady=(10, 20))
+        
+        # Centered Input Grid
+        inputs_frame = ctk.CTkFrame(config_card, fg_color="transparent")
+        inputs_frame.pack(pady=40, padx=40)
+        
+        # Smart Date Selection
+        ctk.CTkLabel(inputs_frame, text="Start Date:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).grid(row=0, column=0, padx=15, sticky="e")
+        s_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
+        s_frame.grid(row=0, column=1, padx=15, pady=10)
+        self.start_cal = ctkAutocompleteEntry(s_frame, width=170, height=45, placeholder_text="YYYY-MM-DD")
+        self.start_cal.pack(side="left")
+        ctk.CTkButton(s_frame, text="📅", width=45, height=45, font=("Helvetica", 18), command=lambda: self.open_calendar(self.start_cal)).pack(side="left", padx=(5,0))
+        
+        ctk.CTkLabel(inputs_frame, text="End Date:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).grid(row=0, column=2, padx=15, sticky="e")
+        e_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
+        e_frame.grid(row=0, column=3, padx=15, pady=10)
+        self.end_cal = ctkAutocompleteEntry(e_frame, width=170, height=45, placeholder_text="YYYY-MM-DD")
+        self.end_cal.pack(side="left")
+        ctk.CTkButton(e_frame, text="📅", width=45, height=45, font=("Helvetica", 18), command=lambda: self.open_calendar(self.end_cal)).pack(side="left", padx=(5,0))
+        
+        self.setup_date_suggestions()
+        self.start_cal.bind("<KeyRelease>", lambda e: self.auto_format_date(self.start_cal), add="+")
+        self.end_cal.bind("<KeyRelease>", lambda e: self.auto_format_date(self.end_cal), add="+")
+
+        actions_frame = ctk.CTkFrame(self, fg_color="transparent")
+        actions_frame.pack(fill="x", pady=10)
+        
+        btn_args = {"font": ("Helvetica", 16, "bold"), "height": 55, "width": 260}
+        
+        self.btn_e = ctk.CTkButton(actions_frame, text="📊 Export to Excel", fg_color="#10b981", hover_color="#059669", command=self.export_excel, **btn_args)
+        self.btn_e.pack(side="left", padx=(0, 20))
+        
+        self.btn_p = ctk.CTkButton(actions_frame, text="📑 Export to PDF", fg_color="#3b82f6", hover_color="#2563eb", command=self.export_pdf, **btn_args)
+        self.btn_p.pack(side="left")
+
+    def open_calendar(self, entry_widget):
+        try:
+            from tkcalendar import Calendar
+        except ImportError:
+            import tkinter.messagebox as messagebox
+            messagebox.showerror("Error", "tkcalendar module is not installed.")
+            return
+
+        top = ctk.CTkToplevel(self)
+        top.overrideredirect(True)
+        top.attributes('-topmost', True)
+        
+        x = entry_widget.winfo_rootx()
+        y = entry_widget.winfo_rooty() + entry_widget.winfo_height()
+        top.geometry(f"+{x}+{y}")
+        
+        # Add a border frame
+        border_frame = ctk.CTkFrame(top, border_width=2, border_color=("gray70", "gray30"), corner_radius=0)
+        border_frame.pack(fill="both", expand=True)
+
+        cal = Calendar(border_frame, selectmode='day', date_pattern='y-mm-dd')
+        cal.pack(padx=5, pady=5, fill="both", expand=True)
+
+        def set_date(event=None):
+            entry_widget.delete(0, 'end')
+            entry_widget.insert(0, cal.get_date())
+            top.destroy()
+            
+        cal.bind("<<CalendarSelected>>", set_date)
+        
+        # Close on losing focus
+        def on_focus_out(event):
+            # Check if focus moved to calendar or its children
+            if event.widget != top and str(event.widget.winfo_toplevel()) != str(top):
+                top.destroy()
+                
+        top.bind("<FocusOut>", on_focus_out)
+        cal.bind("<FocusOut>", on_focus_out)
+        top.focus_set()
+
+    def setup_date_suggestions(self):
+        today = datetime.now()
+        yesterday = today - timedelta(days=1)
+        first_day = today.replace(day=1)
+        
+        suggestions = [
+            today.strftime("%Y-%m-%d"),
+            yesterday.strftime("%Y-%m-%d"),
+            first_day.strftime("%Y-%m-%d"),
+            (first_day - timedelta(days=1)).replace(day=1).strftime("%Y-%m-%d"), # Last month start
+        ]
+        self.start_cal.set_suggestions(suggestions)
+        self.end_cal.set_suggestions(suggestions)
+
+    def auto_format_date(self, widget):
+        val = widget.get().replace("-", "")
+        if len(val) >= 8:
+            formatted = f"{val[:4]}-{val[4:6]}-{val[6:8]}"
+            if widget.get() != formatted:
+                widget.delete(0, 'end')
+                widget.insert(0, formatted)
+
+    def export_excel(self):
+        try:
+            s = self.start_cal.get()
+            e = self.end_cal.get()
+            path = os.path.abspath(f"reports/Sales_{s}_to_{e}.xlsx")
+            exporter.export_sales_excel(s, e, path)
+            messagebox.showinfo("Success", f"Excel report saved to:\n{path}")
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex))
+
+    def export_pdf(self):
+        try:
+            s = self.start_cal.get()
+            e = self.end_cal.get()
+            path = os.path.abspath(f"reports/Sales_{s}_to_{e}.pdf")
+            exporter.export_sales_pdf(s, e, path)
+            messagebox.showinfo("Success", f"PDF report saved to:\n{path}")
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex))

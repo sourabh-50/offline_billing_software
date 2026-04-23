@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# PyInstaller / Build
+build/
+dist/
+*.spec
+
+# Database & Data (Keep your client data private!)
+database.db
+backups/
+invoices/
+reports/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
