@@ -1,5 +1,5 @@
 # Premium Billing System (v1.1.0)
-### Engineered by Sourabh in association with ScaleAd
+### Engineered by Sourabh
 
 A high-performance, offline-first Windows desktop application designed for mobile retail shops and small businesses. This system provides a streamlined billing experience, robust data management, and professional PDF generation.
 
@@ -40,8 +40,8 @@ This repository uses a **Modular Client Architecture**. The core engine is gener
 ---
 
 ## 📞 Support & Customization
-Developed by **ScaleAd Digital Growth Agency**.
+Developed by **Sourabh**.
 - **Website**: [scalead.in](https://scalead.in)
 - **Email**: sourabhshinde5050@gmail.com
 
-*Scale your business with professional digital infrastructure.*
+
