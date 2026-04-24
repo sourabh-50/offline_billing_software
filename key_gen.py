@@ -1,21 +1,20 @@
 import hashlib
 
 def generate_key(hw_id):
-    """
-    Generate an activation key for a given Hardware ID.
-    The secret salt here MUST match the one in license_manager.py
-    """
     SECRET_SALT = "OmSaiDevLock2026_PremiumBilling"
     key = hashlib.sha256((hw_id + SECRET_SALT).encode()).hexdigest()[:20].upper()
     return key
 
 if __name__ == "__main__":
-    print("=== Omsai Billing Software Key Generator ===")
-    hw_id = input("Enter Customer's Machine ID: ").strip()
+    print("==================================================")
+    print("   ScaleAd Premium Billing - LICENSE GENERATOR")
+    print("==================================================")
+    hw_id = input("\nEnter the Hardware ID from the Client's Laptop: ").strip()
     if hw_id:
-        key = generate_key(hw_id)
-        print("-" * 40)
-        print(f"Activation Key: {key}")
-        print("-" * 40)
+        final_key = generate_key(hw_id)
+        print(f"\nSUCCESS! The Activation Key for this client is:\n")
+        print(f">>> {final_key} <<<\n")
+        print("==================================================")
     else:
-        print("Error: Machine ID cannot be empty.")
+        print("Error: Hardware ID cannot be empty.")
+    input("\nPress Enter to close...")
