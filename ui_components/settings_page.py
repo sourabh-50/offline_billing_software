@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import tkinter.messagebox as messagebox
 import database
+import config
 import datetime
 import os
 import sys
@@ -17,7 +18,7 @@ class SettingsFrame(ctk.CTkFrame):
         
         hdr = ctk.CTkLabel(header_frame, text="System Settings", font=("Helvetica", 32, "bold"))
         hdr.pack(anchor="w")
-        sub_hdr = ctk.CTkLabel(header_frame, text="Configure your branding, security, and appearance", font=("Helvetica", 14), text_color=("gray50", "gray70"))
+        sub_hdr = ctk.CTkLabel(header_frame, text="Configure your security and appearance", font=("Helvetica", 14), text_color=("gray50", "gray70"))
         sub_hdr.pack(anchor="w", pady=(5, 0))
 
         # Main Tabbed Container
@@ -42,7 +43,7 @@ class SettingsFrame(ctk.CTkFrame):
         container.pack(fill="both", expand=True, padx=20, pady=20)
         
         # 1. Shop Details
-        shop_lbl = ctk.CTkLabel(container, text="Om Sai Mobile Shopee", font=("Helvetica", 32, "bold"), text_color="#ef4444")
+        shop_lbl = ctk.CTkLabel(container, text=config.SHOP_NAME, font=("Helvetica", 32, "bold"), text_color="#ef4444")
         shop_lbl.pack(pady=(10, 5))
         tag_lbl = ctk.CTkLabel(container, text="Billing & Inventory System", font=("Helvetica", 16), text_color="gray50")
         tag_lbl.pack(pady=(0, 20))

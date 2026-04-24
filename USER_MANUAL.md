@@ -26,7 +26,6 @@ Welcome to your professional billing system. This software is designed for simpl
 - **Full Backup**: Creates a ZIP file of your entire database and all invoices. Keep this on a USB drive!
 
 ## 5. Personalization & Settings
-- **Branding**: Upload your shop's header and footer images to make your bills look professional.
 - **Security**: Update or remove your login password.
 - **Maintenance**: Clear old data if the system feels slow (Caution: This is permanent).
 - **Appearance**: Switch between Light Mode and Dark Mode.

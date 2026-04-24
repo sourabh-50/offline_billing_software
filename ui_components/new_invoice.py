@@ -42,7 +42,11 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
         self.cust_name = ctkAutocompleteEntry(c_fields, placeholder_text="Full Name", height=45, width=280, font=("Helvetica", 14))
         self.cust_name.pack(side="left", padx=(0, 15))
         
-        self.cust_mobile = ctkAutocompleteEntry(c_fields, placeholder_text="Mobile No.", height=45, width=200, font=("Helvetica", 14))
+        self.mobile_var = ctk.StringVar()
+        self.mobile_var.trace_add("write", self.limit_mobile_length)
+        
+        self.cust_mobile = ctkAutocompleteEntry(c_fields, placeholder_text="Mobile No.", height=45, width=200, font=("Helvetica", 14),
+                                              textvariable=self.mobile_var)
         self.cust_mobile.pack(side="left", padx=(0, 15))
         
         self.cust_address = ctk.CTkEntry(c_fields, placeholder_text="Complete Address", height=45, font=("Helvetica", 14))
@@ -81,6 +85,17 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
 
         self.btn_save = ctk.CTkButton(action_card, text="Save & Print Bill", font=("Helvetica", 18, "bold"), height=55, width=300, command=self.save_invoice)
         self.btn_save.pack(side="right", padx=25, pady=25)
+
+    def limit_mobile_length(self, *args):
+        value = self.mobile_var.get()
+        # Remove non-digits
+        clean_value = "".join(filter(str.isdigit, value))
+        # Limit to 10 characters
+        if len(clean_value) > 10:
+            clean_value = clean_value[:10]
+        
+        if value != clean_value:
+            self.mobile_var.set(clean_value)
 
     def refresh_data(self):
         firms_data = database.get_firms()
@@ -153,6 +168,11 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
     def save_invoice(self):
         if not self.cust_name.get().strip():
             messagebox.showerror("Error", "Customer name is required.")
+            return
+        
+        mobile = self.cust_mobile.get().strip()
+        if mobile and len(mobile) != 10:
+            messagebox.showerror("Error", "Mobile number must be exactly 10 digits.")
             return
 
         pdf_dir = database.get_setting("pdf_storage_path")

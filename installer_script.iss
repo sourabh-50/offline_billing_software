@@ -3,7 +3,7 @@
 
 [Setup]
 AppId={{8B3A8B9E-7A1B-4C9D-9E2A-6C3D55AA332F}
-AppName=Omsai Billing Software
+AppName=Anuj Billing Software
 AppVersion=1.1.0
 AppPublisher=ScaleAd
 AppPublisherURL=https://scalead.in

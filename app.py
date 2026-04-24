@@ -34,8 +34,8 @@ class App(ctk.CTk):
         super().__init__()
         
         self.title(f"{config.APP_NAME} v{config.VERSION}")
-        self.geometry("1150x800")
-        self.minsize(1050, 650)
+        self.geometry("1000x750")
+        self.minsize(900, 600)
         
         # Set App Icon
         try:
@@ -193,7 +193,7 @@ class App(ctk.CTk):
         except:
             pass
             
-        logo_lbl = ctk.CTkLabel(sidebar, text="OM SAI\nBILLING", font=("Helvetica", 32, "bold"), text_color="#ef4444")
+        logo_lbl = ctk.CTkLabel(sidebar, text=config.SIDEBAR_NAME, font=("Helvetica", 32, "bold"), text_color="#ef4444")
         logo_lbl.pack(pady=(10, 5), padx=20)
         sub_logo = ctk.CTkLabel(sidebar, text="Mobile Billing Software", font=("Helvetica", 14), text_color=("gray50", "gray70"))
         sub_logo.pack(pady=(0, 40))

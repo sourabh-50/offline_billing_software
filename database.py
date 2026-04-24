@@ -1,8 +1,9 @@
 import os
 import sys
+import datetime
+import config
 import sqlite3
 import hashlib
-import datetime
 
 # Get the base directory of the application
 if getattr(sys, 'frozen', False):
@@ -118,7 +119,7 @@ def init_db():
         cursor.execute('''
             INSERT INTO Firms (firm_name, gst_number, address, contact, invoice_prefix)
             VALUES (?, ?, ?, ?, ?)
-        ''', ("Om Sai Mobile Shoppee", "27GEFPS4065Q1ZM", "Chh. Shivaji Maharaj Chowk, G. Sinagi Peth, S.T. Stand Road, Kurul, Taluka Mohol, Solapur", "9804117777", "INV"))
+        ''', (config.SHOP_NAME, "27GEFPS4065Q1ZM", "Chh. Shivaji Maharaj Chowk, G. Sinagi Peth, S.T. Stand Road, Kurul, Taluka Mohol, Solapur", "9804117777", "INV"))
 
     conn.commit()
     conn.close()
