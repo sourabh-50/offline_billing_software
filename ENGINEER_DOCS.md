@@ -55,3 +55,10 @@ The repository is structured to support multiple clients using the same core eng
     2. Add their specific `header_img.png` and `footer_img.png`.
     3. Create a `firm_setup.sql` to initialize their shop name and details in the DB.
     4. Copy their images to the root and edit `config.py` with their specific app name before running `build_app.bat`.
+
+## 8. Automated Deployment (Smart Build)
+Instead of manually moving files, use `deploy_client.bat`:
+1.  Run the script.
+2.  Type the client name (e.g., `omsai`).
+3.  The script automatically swaps the assets and places the final build in `dist/Client_Packages/omsai/`.
+4.  This allows you to build for 10 different clients without ever touching the main code.
