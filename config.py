@@ -1,4 +1,4 @@
-# Global Configuration for Omsai Billing Software
+# Global Configuration for Premium Billing System
 # ScaleAd Premium Billing System v1.1.0
 
 VERSION = "1.1.0"

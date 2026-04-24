@@ -29,16 +29,17 @@ You need to tell the software which shop it belongs to.
 
 ---
 
-## 🟡 PHASE 3: The One-Click Build
-Now, let's turn the code into a Windows application.
+## 🟡 PHASE 3: The Super Build (Full Automation)
+Now, let's turn the code into a Windows application with the correct name and branding.
 
-1.  **Run the script**: Double-click the file named `deploy_client.bat`.
-2.  **Enter the Name**: A black window will appear. Type your client folder name (e.g., `mahesh_mobile`) and press **Enter**.
-3.  **Wait**: The computer will work for about 1-2 minutes.
-4.  **Find the Result**: When it finishes, go to the folder:
-    `dist \ Client_Packages \ mahesh_mobile`
+1.  **Run the script**: Double-click the file named **`super_deploy.bat`**.
+2.  **Step 1 (Folder Name)**: Type the folder name (e.g., `omsai`) and press **Enter**.
+3.  **Step 2 (App Name)**: Type the full name you want on the shortcut (e.g., `Omsai Billing Software`) and press **Enter**.
+4.  **Wait**: The computer will automatically update the code, swap the images, and create the `.exe` file.
+5.  **Find the Result**: When it finishes, go to:
+    `dist \ Client_Packages \ omsai`
     
-**Congratulations!** This folder contains the "Portable" version of the app. You can copy this folder to any laptop and it will work.
+**This folder is now custom-branded for your client!**
 
 ---
 
