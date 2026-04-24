@@ -1,9 +1,16 @@
+import os
+import sys
 import sqlite3
 import hashlib
-import os
 import datetime
 
-DB_NAME = "database.db"
+# Get the base directory of the application
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DB_NAME = os.path.join(BASE_DIR, "database.db")
 
 def init_db():
     # Create required directories

@@ -24,15 +24,53 @@ class SettingsFrame(ctk.CTkFrame):
         self.tabview = ctk.CTkTabview(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
         self.tabview.pack(fill="both", expand=True)
         
+        self.tabview.add("Branding")
         self.tabview.add("About")
         self.tabview.add("Security")
         self.tabview.add("Maintenance")
         self.tabview.add("Appearance")
         
+        self.setup_branding_tab()
         self.setup_about_tab()
         self.setup_security_tab()
         self.setup_maintenance_tab()
         self.setup_appearance_tab()
+
+    def setup_branding_tab(self):
+        tab = self.tabview.tab("Branding")
+        import shutil
+        import tkinter.filedialog as filedialog
+        
+        container = ctk.CTkFrame(tab, fg_color="transparent")
+        container.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        ctk.CTkLabel(container, text="Invoice Personalization", font=("Helvetica", 22, "bold")).pack(pady=(10, 5))
+        ctk.CTkLabel(container, text="Upload your custom header and footer images for professional billing.", font=("Helvetica", 14), text_color="gray50").pack(pady=(0, 30))
+        
+        def upload_image(target_name):
+            path = filedialog.askopenfilename(filetypes=[("Image files", "*.png *.jpg *.jpeg")])
+            if path:
+                try:
+                    dest = target_name # "header_img.png" or "footer_img.png"
+                    shutil.copy2(path, dest)
+                    messagebox.showinfo("Success", f"{target_name.replace('_', ' ').title()} updated successfully!")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to upload image: {e}")
+        
+        # Header Upload Card
+        h_card = ctk.CTkFrame(container, corner_radius=15, border_width=1, border_color=("gray85", "gray20"))
+        h_card.pack(fill="x", pady=10)
+        ctk.CTkLabel(h_card, text="Main Header Image", font=("Helvetica", 16, "bold")).pack(side="left", padx=25, pady=20)
+        ctk.CTkButton(h_card, text="Upload Header", width=150, height=40, command=lambda: upload_image("header_img.png")).pack(side="right", padx=25, pady=20)
+        
+        # Footer Upload Card
+        f_card = ctk.CTkFrame(container, corner_radius=15, border_width=1, border_color=("gray85", "gray20"))
+        f_card.pack(fill="x", pady=10)
+        ctk.CTkLabel(f_card, text="Bottom Footer Image", font=("Helvetica", 16, "bold")).pack(side="left", padx=25, pady=20)
+        ctk.CTkButton(f_card, text="Upload Footer", width=150, height=40, command=lambda: upload_image("footer_img.png")).pack(side="right", padx=25, pady=20)
+        
+        ctk.CTkLabel(container, text="💡 Tip: For best results, use PNG images with 1200x400 (Header) and 1200x800 (Footer) resolution.", 
+                     font=("Helvetica", 12, "italic"), text_color="gray50").pack(pady=20)
 
     def setup_about_tab(self):
         tab = self.tabview.tab("About")
@@ -210,25 +248,42 @@ class SettingsFrame(ctk.CTkFrame):
 
     def create_desktop_shortcut(self):
         try:
+            if sys.platform != "win32":
+                messagebox.showinfo("Note", "Desktop shortcut creation is currently optimized for Windows. For Linux/Mac, please launch the application using the terminal or create a manual launcher.")
+                return
+
             # Determine path to the executable or script
             if getattr(sys, 'frozen', False):
                 # Running as PyInstaller Bundle
                 target = sys.executable
-                icon_path = target
+                arguments = ""
+                working_dir = os.path.dirname(target)
+                icon_path = target # Use the exe icon
             else:
-                # Running as Script
-                target = os.path.abspath("app.py")
+                # Running as Script - Use pythonw.exe to avoid console window
+                python_exe = sys.executable
+                pythonw_exe = python_exe.replace("python.exe", "pythonw.exe")
+                if not os.path.exists(pythonw_exe):
+                    pythonw_exe = python_exe # fallback
+                
+                target = pythonw_exe
+                script_path = os.path.abspath("app.py")
+                arguments = f'"{script_path}"'
+                working_dir = os.path.dirname(script_path)
                 icon_path = os.path.abspath("assets/app_icon.ico")
 
-            shortcut_path = os.path.join(os.environ["USERPROFILE"], "Desktop", "Omsai Billing Software.lnk")
+            # Expand user path correctly for cross-platform robustness
+            desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+            shortcut_path = os.path.join(desktop, "Omsai Billing Software.lnk")
             
-            # PowerShell script to create the shortcut
+            # PowerShell script to create the shortcut (Windows only)
             ps_script = f"""
             $WshShell = New-Object -ComObject WScript.Shell
             $Shortcut = $WshShell.CreateShortcut('{shortcut_path}')
             $Shortcut.TargetPath = '{target}'
+            $Shortcut.Arguments = '{arguments}'
             $Shortcut.IconLocation = '{icon_path}'
-            $Shortcut.WorkingDirectory = '{os.path.dirname(target)}'
+            $Shortcut.WorkingDirectory = '{working_dir}'
             $Shortcut.Save()
             """
             

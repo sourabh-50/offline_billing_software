@@ -1,6 +1,5 @@
 import os
 import sqlite3
-import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Table, TableStyle
@@ -10,9 +9,10 @@ DB_NAME = "database.db"
 
 def get_sales_data(start_date=None, end_date=None):
     conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
     query = '''
         SELECT i.invoice_number, i.date, c.name as Customer_Name, 
-               ii.product_name, ii.imei, i.total_amount, (i.cgst + i.sgst) as Total_GST
+               ii.product_name, ii.imei, i.total_amount
         FROM Invoices i
         JOIN Customers c ON i.customer_id = c.customer_id
         JOIN Invoice_Items ii ON i.invoice_id = ii.invoice_id
@@ -25,20 +25,51 @@ def get_sales_data(start_date=None, end_date=None):
         query += " WHERE i.date >= ?"
         params.append(start_date)
         
-    df = pd.read_sql_query(query, conn, params=params)
+    cursor.execute(query, params)
+    columns = [desc[0] for desc in cursor.description]
+    data = cursor.fetchall()
     conn.close()
-    return df
+    return columns, data
 
 def export_sales_excel(start_date, end_date, output_path):
-    df = get_sales_data(start_date, end_date)
-    df.to_excel(output_path, index=False)
+    from openpyxl import Workbook
+    cols, data = get_sales_data(start_date, end_date)
+    
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sales Report"
+    
+    # Write header
+    ws.append(cols)
+    
+    # Write data
+    for row in data:
+        ws.append(row)
+        
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[column].width = max_length + 2
+
+    wb.save(output_path)
     return output_path
 
 def export_sales_pdf(start_date, end_date, output_path):
-    df = get_sales_data(start_date, end_date)
-    total_sales = df['total_amount'].sum() if not df.empty else 0.0
-    total_gst = df['Total_GST'].sum() if not df.empty else 0.0
-    num_invoices = df['invoice_number'].nunique() if not df.empty else 0
+    cols, rows = get_sales_data(start_date, end_date)
+    
+    # Calculate summary
+    # total_amount is the last column (index 5)
+    total_sales = sum(row[5] for row in rows) if rows else 0.0
+    # invoice_number is the first column (index 0)
+    unique_invoices = len(set(row[0] for row in rows)) if rows else 0
+    num_invoices = unique_invoices
 
     c = canvas.Canvas(output_path, pagesize=A4)
     width, height = A4
@@ -52,16 +83,15 @@ def export_sales_pdf(start_date, end_date, output_path):
     # Summary
     c.drawString(40, height - 100, f"Total Invoices: {num_invoices}")
     c.drawString(40, height - 115, f"Total Sales: Rs. {total_sales:.2f}")
-    c.drawString(40, height - 130, f"Total GST: Rs. {total_gst:.2f}")
 
     # Table
-    y = height - 160
-    if not df.empty:
+    y = height - 145
+    if rows:
         # Group to avoid repeating invoice fields unnecessarily, but simple flattened table is fine
-        data = [df.columns.tolist()]
-        for _, row in df.iterrows():
+        data = [cols]
+        for row in rows:
             # Convert row to strings
-            data.append([str(val) for val in row.values])
+            data.append([str(val) for val in row])
 
         table = Table(data)
         table.setStyle(TableStyle([

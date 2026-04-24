@@ -84,7 +84,7 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
 
     def refresh_data(self):
         firms_data = database.get_firms()
-        self.firms = {f"{f[1]} (GST: {f[2]})": f for f in firms_data}
+        self.firms = {f"{f[1]}": f for f in firms_data}
         if self.firms:
             self.firm_dropdown.configure(values=list(self.firms.keys()))
             self.firm_var.set(list(self.firms.keys())[0])

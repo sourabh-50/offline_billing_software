@@ -59,13 +59,15 @@ def generate_invoice_pdf(pdf_path, firm_name, gst_number, firm_address, invoice_
     path = c.beginPath()
     path.rect(left_x + 0.5, bottom_y + 0.5, border_w - 1, border_h - 1)
     c.clipPath(path, stroke=0, fill=0)
-    # Calculate heights to maintain aspect ratio based on new cropped dimensions
-    # Header: 1236x372 -> width 551 means height ~165.8
-    # Footer: 1261x799 -> width 551 means height ~348.9
-    if os.path.exists("header_img.png"):
-        c.drawImage("header_img.png", left_x, top_y - 165.8, width=border_w, height=165.8)
-    if os.path.exists("footer_img.png"):
-        c.drawImage("footer_img.png", left_x, bottom_y, width=border_w, height=348.9)
+    
+    from utils import get_asset_path
+    header_img = get_asset_path("header_img.png")
+    footer_img = get_asset_path("footer_img.png")
+
+    if os.path.exists(header_img):
+        c.drawImage(header_img, left_x, top_y - 165.8, width=border_w, height=165.8)
+    if os.path.exists(footer_img):
+        c.drawImage(footer_img, left_x, bottom_y, width=border_w, height=348.9)
     c.restoreState()
     
     # Draw the single unified border rectangle

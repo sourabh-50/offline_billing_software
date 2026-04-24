@@ -4,7 +4,9 @@ from PIL import Image, ImageTk
 import qrcode
 import os
 import ctypes
+import sys
 
+import config
 from database import is_auth_setup, setup_auth, verify_auth, init_db, remove_auth
 from ui_components.dashboard import DashboardFrame
 from ui_components.new_invoice import NewInvoiceFrame
@@ -13,13 +15,17 @@ from ui_components.settings_page import SettingsFrame
 import backup_service
 import license_manager
 
+import sys
+from utils import get_asset_path
+
 ctk.set_appearance_mode("Light")
 ctk.set_default_color_theme("blue")
 
 # Enable Taskbar Icon on Windows - Must be called early
 try:
-    myappid = 'scalead.billingsystem.omsai.v1'
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    if os.name == 'nt':
+        myappid = 'scalead.billingsystem.omsai.v1'
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except:
     pass
 
@@ -27,14 +33,14 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         
-        self.title("Omsai Billing Software")
+        self.title(f"{config.APP_NAME} v{config.VERSION}")
         self.geometry("1150x800")
         self.minsize(1050, 650)
         
         # Set App Icon
         try:
-            icon_path_png = "assets/app_icon.png"
-            icon_path_ico = "assets/app_icon.ico"
+            icon_path_png = get_asset_path("assets/app_icon.png")
+            icon_path_ico = get_asset_path("assets/app_icon.ico")
             
             if os.path.exists(icon_path_png):
                 self.logo_pil = Image.open(icon_path_png)
@@ -42,7 +48,7 @@ class App(ctk.CTk):
                 self.icon_photo = ImageTk.PhotoImage(self.logo_pil.resize((256, 256)))
                 self.iconphoto(True, self.icon_photo)
             
-            if os.path.exists(icon_path_ico):
+            if os.name == 'nt' and os.path.exists(icon_path_ico):
                 self.after(200, lambda: self.iconbitmap(icon_path_ico))
         except Exception as e:
             print(f"Icon Load Error: {e}")
@@ -272,7 +278,7 @@ class App(ctk.CTk):
         dropdown = ctk.CTkOptionMenu(modal, variable=timeline_var, values=["Today", "This Week", "This Month", "This Year", "All Time"], width=300, height=50, font=("Helvetica", 15))
         dropdown.pack(pady=10)
         
-        def process_backup():
+        def process_excel_backup():
             tl = timeline_var.get()
             import tkinter.filedialog as filedialog
             save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", initialfile=f"Bills_Backup_{tl.replace(' ','_')}.xlsx", title="Save Excel Backup", filetypes=[("Excel files", "*.xlsx")])
@@ -288,8 +294,25 @@ class App(ctk.CTk):
                 messagebox.showwarning("No Data", str(e))
             except Exception as e:
                 messagebox.showerror("Error", str(e))
+
+        def process_pdf_backup():
+            tl = timeline_var.get()
+            import tkinter.filedialog as filedialog
+            save_path = filedialog.asksaveasfilename(defaultextension=".pdf", initialfile=f"Full_PDF_Backup_{tl.replace(' ','_')}.pdf", title="Save Merged PDF", filetypes=[("PDF files", "*.pdf")])
+            if not save_path:
+                return
+            
+            try:
+                final_path = backup_service.export_pdf_merged(tl, save_path)
+                messagebox.showinfo("Success", f"Merged PDF saved to:\n{final_path}")
+                modal.destroy()
+            except ValueError as e:
+                messagebox.showwarning("No Data", str(e))
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
                 
-        ctk.CTkButton(modal, text="Start Excel Backup", font=("Helvetica", 16, "bold"), width=300, height=50, command=process_backup).pack(pady=(25, 30))
+        ctk.CTkButton(modal, text="Start Excel Backup", font=("Helvetica", 16, "bold"), width=300, height=50, command=process_excel_backup).pack(pady=(25, 10))
+        ctk.CTkButton(modal, text="Start PDF Backup (Merged PDF)", font=("Helvetica", 16, "bold"), fg_color="#3b82f6", hover_color="#2563eb", width=300, height=50, command=process_pdf_backup).pack(pady=10)
 
 if __name__ == "__main__":
     app = App()

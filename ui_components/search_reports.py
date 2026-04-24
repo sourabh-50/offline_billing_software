@@ -154,35 +154,46 @@ class ReportsFrame(ctk.CTkFrame):
             return
 
         top = ctk.CTkToplevel(self)
-        top.overrideredirect(True)
-        top.attributes('-topmost', True)
-        
+        top.title("Select Date")
+        # Position relative to entry
         x = entry_widget.winfo_rootx()
         y = entry_widget.winfo_rooty() + entry_widget.winfo_height()
-        top.geometry(f"+{x}+{y}")
+        top.geometry(f"300x320+{x}+{y}")
+        top.resizable(False, False)
+        top.attributes('-topmost', True)
+        top.transient(self.winfo_toplevel()) # Keep it on top of the main window
         
-        # Add a border frame
-        border_frame = ctk.CTkFrame(top, border_width=2, border_color=("gray70", "gray30"), corner_radius=0)
-        border_frame.pack(fill="both", expand=True)
+        # Set icon for the calendar window
+        try:
+            if os.path.exists("assets/app_icon.ico"):
+                top.after(200, lambda: top.iconbitmap("assets/app_icon.ico"))
+        except:
+            pass
 
-        cal = Calendar(border_frame, selectmode='day', date_pattern='y-mm-dd')
-        cal.pack(padx=5, pady=5, fill="both", expand=True)
+        # Add a border frame for aesthetics
+        container = ctk.CTkFrame(top, corner_radius=10)
+        container.pack(fill="both", expand=True, padx=2, pady=2)
+
+        cal = Calendar(container, selectmode='day', date_pattern='y-mm-dd')
+        cal.pack(padx=10, pady=(10, 5), fill="both", expand=True)
 
         def set_date(event=None):
+            date_str = cal.get_date()
             entry_widget.delete(0, 'end')
-            entry_widget.insert(0, cal.get_date())
+            entry_widget.insert(0, date_str)
             top.destroy()
             
         cal.bind("<<CalendarSelected>>", set_date)
         
-        # Close on losing focus
-        def on_focus_out(event):
-            # Check if focus moved to calendar or its children
-            if event.widget != top and str(event.widget.winfo_toplevel()) != str(top):
-                top.destroy()
-                
-        top.bind("<FocusOut>", on_focus_out)
-        cal.bind("<FocusOut>", on_focus_out)
+        # Action Buttons
+        btn_frame = ctk.CTkFrame(container, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=5)
+        
+        ctk.CTkButton(btn_frame, text="Select", width=120, height=35, command=set_date).pack(side="left", padx=(20, 10), pady=10)
+        ctk.CTkButton(btn_frame, text="Cancel", width=120, height=35, fg_color="transparent", border_width=1, command=top.destroy).pack(side="left", padx=(10, 20), pady=10)
+
+        # Modal behavior
+        top.grab_set()
         top.focus_set()
 
     def setup_date_suggestions(self):
