@@ -22,6 +22,9 @@ def init_db():
     cursor = conn.cursor()
 
     # Create Firms Table
+    # NOTE FOR ENGINEER: Firms are not editable in the UI. 
+    # This allows you to charge for maintenance when clients want to change shop details.
+    # Manually insert into this table before delivery.
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS Firms (
             firm_id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -2,7 +2,7 @@
 # ScaleAd Premium Billing System v1.1.0
 
 VERSION = "1.1.0"
-APP_NAME = "Omsai Billing Software"
+APP_NAME = "Premium Billing System"
 VENDOR_NAME = "ScaleAd"
 VENDOR_WEBSITE = "https://scalead.in"
 SUPPORT_EMAIL = "support@scalead.in"

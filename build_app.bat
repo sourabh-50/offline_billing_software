@@ -1,6 +1,6 @@
 @echo off
 echo ==================================================
-echo   Building Omsai Billing Software (v1.1.0)
+echo   Building Premium Billing System (v1.1.0)
 echo   Optimized for Windows 7, 10, 11
 echo ==================================================
 
@@ -18,7 +18,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo [3/3] Build Complete!
-echo The executable is located in: dist\Omsai Billing Software\
+echo The executable is located in: dist\Premium Billing System\
 echo.
 echo TIP: To target Windows 7, ensure you are using Python 3.8.
 pause
