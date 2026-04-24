@@ -3,14 +3,14 @@
 
 [Setup]
 AppId={{8B3A8B9E-7A1B-4C9D-9E2A-6C3D55AA332F}
-AppName=Anuj Billing Software
+AppName=Omsai Billing Software
 AppVersion=1.1.0
 AppPublisher=ScaleAd
 AppPublisherURL=https://scalead.in
 DefaultDirName={autopf}\Omsai Billing Software
 DefaultGroupName=Omsai Billing Software
 OutputDir=dist\Installers
-OutputBaseFilename=BillingSystem_Setup
+OutputBaseFilename=Omsai_Billing_Setup
 SetupIconFile=assets\app_icon.ico
 Compression=lzma
 SolidCompression=yes
@@ -23,8 +23,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; NOTE: Change the Source path below to match your client's built folder (e.g., dist\\Client_Packages\\omsai\\*)
-Source: "dist\\Client_Packages\\omsai\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Using the single-file EXE from the omsai package folder
+Source: "dist\Client_Packages\omsai\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Omsai Billing Software"; Filename: "{app}\Omsai Billing Software.exe"
