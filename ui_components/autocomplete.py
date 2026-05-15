@@ -37,7 +37,7 @@ class ctkAutocompleteEntry(ctk.CTkEntry):
 
     def _show_lb(self, hits):
         if not self._lb_open:
-            self._lb = ctk.CTkFrame(self.master, border_width=1, border_color=("gray80", "gray30"), corner_radius=12, fg_color=("#ffffff", "#2d2d2d"))
+            self._lb = ctk.CTkFrame(self.winfo_toplevel(), border_width=1, border_color=("gray80", "gray30"), corner_radius=12, fg_color=("#ffffff", "#2d2d2d"))
             self._lb_open = True
             
         for widget in self._lb.winfo_children():
@@ -49,11 +49,28 @@ class ctkAutocompleteEntry(ctk.CTkEntry):
             btn = ctk.CTkButton(self._lb, text=hit, font=("Helvetica", 13), fg_color="transparent", 
                                 text_color=("black", "white"), hover_color=("#3b82f6", "#3b82f6"),
                                 anchor="w", height=35, corner_radius=8, command=lambda h=hit: self._select_hit(h))
-            btn.pack(fill="x", padx=5, pady=2)
+            btn.pack(fill="x")
             self._btns.append(btn)
             
-        x = self.winfo_x()
-        y = self.winfo_y() + self.winfo_height() + 5
+        # Ensure we have the latest dimensions
+        self.update_idletasks()
+        
+        # Calculate absolute position and offset for toplevel
+        root = self.winfo_toplevel()
+        entry_root_x = self.winfo_rootx() - root.winfo_rootx()
+        entry_root_y = self.winfo_rooty() - root.winfo_rooty()
+        
+        # Estimate height based on number of items
+        lb_height = len(hits[:8]) * 35 + 10
+        
+        # Position above the entry box
+        x = entry_root_x
+        y = entry_root_y - lb_height - 5
+        
+        # If it goes off the top edge, pop it downwards instead
+        if y < 30:
+            y = entry_root_y + self.winfo_height() + 5
+            
         self._lb.configure(width=max(self.winfo_width(), 200))
         self._lb.place(x=x, y=y)
         self._lb.lift()

@@ -12,6 +12,7 @@ from ui_components.dashboard import DashboardFrame
 from ui_components.new_invoice import NewInvoiceFrame
 from ui_components.search_reports import SearchFrame, ReportsFrame
 from ui_components.settings_page import SettingsFrame
+from ui_components.stock_management import StockFrame
 import backup_service
 import license_manager
 
@@ -34,8 +35,14 @@ class App(ctk.CTk):
         super().__init__()
         
         self.title(f"{config.APP_NAME} v{config.VERSION}")
-        self.geometry("1000x750")
-        self.minsize(900, 600)
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        self.geometry(f"{screen_width}x{screen_height}+0+0")
+        self.minsize(1000, 700)
+        
+        if os.name == 'nt':
+            # Defer zoomed state so it isn't overridden by window manager
+            self.after(0, lambda: self.state('zoomed'))
         
         # Set App Icon
         try:
@@ -207,6 +214,7 @@ class App(ctk.CTk):
         buttons = [
             ("Home", "Dashboard"), 
             ("New Bill", "New Invoice"), 
+            ("Stock", "Stock"),
             ("Search Bills", "Search"), 
             ("Reports", "Reports"), 
             ("Backup", "Backup"),
@@ -230,6 +238,7 @@ class App(ctk.CTk):
         # Initialize Frames
         self.frames["Dashboard"] = DashboardFrame(self.main_area)
         self.frames["New Invoice"] = NewInvoiceFrame(self.main_area)
+        self.frames["Stock"] = StockFrame(self.main_area)
         self.frames["Search"] = SearchFrame(self.main_area)
         self.frames["Reports"] = ReportsFrame(self.main_area)
         self.frames["Settings"] = SettingsFrame(self.main_area, self)

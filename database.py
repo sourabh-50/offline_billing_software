@@ -113,6 +113,17 @@ def init_db():
         )
     ''')
 
+    # Create Stock Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Stock (
+            stock_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            model_name TEXT NOT NULL,
+            imei TEXT,
+            quantity INTEGER DEFAULT 1,
+            price REAL
+        )
+    ''')
+
     # Ensure default firm is present
     cursor.execute("SELECT COUNT(*) FROM Firms")
     if cursor.fetchone()[0] == 0:
@@ -244,9 +255,14 @@ def create_invoice(invoice_number, firm_id, customer_id, date, subtotal, cgst, s
             item.get('quantity', 1), item.get('price', 0.0), item.get('discount', 0.0), item.get('final_rate', 0.0),
             item.get('battery_num', ''), item.get('charger_num', ''), item.get('warranty', '')
         ))
-    
+        
     conn.commit()
     conn.close()
+
+    # Decrement Stock after releasing the main connection lock
+    for item in items:
+        decrement_stock(item.get('product_name', ''), item.get('imei', ''))
+
     return invoice_id
 
 def search_invoices(query=""):
@@ -299,6 +315,58 @@ def get_all_product_names():
     rows = [r[0] for r in cursor.fetchall()]
     conn.close()
     return rows
+
+# Stock Management Functions
+def add_stock(model_name, imei, quantity, price):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO Stock (model_name, imei, quantity, price)
+        VALUES (?, ?, ?, ?)
+    ''', (model_name, imei, quantity, price))
+    conn.commit()
+    conn.close()
+
+def get_all_stock():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Stock ORDER BY model_name ASC")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def delete_stock_item(stock_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Stock WHERE stock_id=?", (stock_id,))
+    conn.commit()
+    conn.close()
+
+def update_stock_item(stock_id, model_name, imei, quantity, price):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE Stock 
+        SET model_name=?, imei=?, quantity=?, price=?
+        WHERE stock_id=?
+    ''', (model_name, imei, quantity, price, stock_id))
+    conn.commit()
+    conn.close()
+
+def decrement_stock(model_name, imei=None):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    # Find one matching item in stock that has quantity > 0 and decrement it
+    cursor.execute('''
+        UPDATE Stock 
+        SET quantity = quantity - 1 
+        WHERE stock_id = (
+            SELECT stock_id FROM Stock 
+            WHERE model_name=? AND quantity > 0 LIMIT 1
+        )
+    ''', (model_name,))
+    conn.commit()
+    conn.close()
 
 def clear_records_by_date(start_date_str, end_date_str=None):
     """

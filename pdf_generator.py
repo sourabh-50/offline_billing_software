@@ -73,100 +73,119 @@ def generate_invoice_pdf(pdf_path, firm_name, gst_number, firm_address, invoice_
     # Draw the single unified border rectangle
     c.rect(left_x, bottom_y, border_w, border_h)
     
-    # Row 1: Date (Sticked to the right)
-    c.setFont("Helvetica-Bold", 10)
-    c.drawRightString(500, 635, "Date:")
-    c.line(505, 633, 555, 633)
-    c.setFont("Helvetica", 10)
-    c.drawString(505, 635, date)
-    
-    # Row 2: Name & Receipt No (Aligned on same line)
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(40, 610, "Name:")
-    c.line(85, 608, 280, 608)
-    
-    c.drawRightString(480, 610, "Receipt No.:")
-    c.line(485, 608, 555, 608)
+    # Row 1: Name & Invoice No
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(40, 635, "Name : ")
+    c.setFont("Helvetica", 11)
+    c.drawString(90, 635, customer_name[:35])
+    c.setLineWidth(0.5)
+    c.line(85, 633, 280, 633)
     
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(90, 610, customer_name[:35])
-    c.setFont("Helvetica", 10)
-    c.drawString(485, 610, invoice_number)
+    c.drawRightString(460, 635, "Invoice No. : ")
+    c.setFont("Helvetica", 11)
+    c.drawString(465, 635, invoice_number)
+    c.line(465, 633, 555, 633)
     
-    # Row 3: Address & Phone (Aligned on same line)
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(40, 585, "Address:")
-    c.line(95, 583, 280, 583)
+    # Row 2: Mobile & Date
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(40, 610, "Mobile : ")
+    c.setFont("Helvetica", 11)
+    c.drawString(90, 610, customer_mobile[:15])
+    c.line(85, 608, 280, 608)
     
-    c.drawRightString(480, 585, "Phone: +91")
-    c.line(485, 583, 555, 583)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawRightString(460, 610, "Date : ")
+    c.setFont("Helvetica", 11)
+    c.drawString(465, 610, date)
+    c.line(465, 608, 555, 608)
     
-    c.setFont("Helvetica", 10)
-    c.drawString(100, 585, customer_address[:45])
-    c.drawString(485, 585, customer_mobile[:15])
+    # Row 3: Address
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(40, 585, "Address : ")
+    c.setFont("Helvetica", 11)
+    c.drawString(100, 585, customer_address[:85])
+    c.line(95, 583, 555, 583)
     
-    c.setFont("Helvetica-Bold", 12)
-    c.drawCentredString(297.5, 560, "Details") # Lowered to match overlay
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(297.5, 545, "Details")
     
     # 4. Draw Table Dynamically (Centered on page)
-    # Widened table for better data fit, while keeping a 20pt gap from the outer border
     table_width = 510 
-    table_x = 297.5 - (table_width / 2) # = 42.5
-    table_top = 545
+    table_x = 297.5 - (table_width / 2)
+    table_top = 525
     row_height = 25
     header_height = 25
     total_row_height = 25
     
     num_items = len(items)
-    rows_to_draw = max(1, num_items)
+    rows_to_draw = max(3, num_items)
     table_bottom = table_top - header_height - (rows_to_draw * row_height) - total_row_height
     
-    c.setLineWidth(0.8) # Thicker table lines for dark look
+    c.setLineWidth(1.0) 
     c.rect(table_x, table_bottom, table_width, table_top - table_bottom)
     c.line(table_x, table_top - header_height, table_x + table_width, table_top - header_height)
     
+    # Draw horizontal row separators inside the table for ALL rows
+    for r in range(1, rows_to_draw):
+        row_y = table_top - header_height - (r * row_height)
+        c.line(table_x, row_y, table_x + table_width, row_y)
+        
     total_row_y = table_bottom + total_row_height
     c.line(table_x, total_row_y, table_x + table_width, total_row_y)
     
     cols = [
-        {"x": table_x, "lbl": "S.N", "width": 25},
-        {"x": table_x + 25, "lbl": "Model Name", "width": 120},
-        {"x": table_x + 145, "lbl": "IMEI", "width": 105},
-        {"x": table_x + 250, "lbl": "Battery No.", "width": 60},
-        {"x": table_x + 310, "lbl": "Charger No.", "width": 60},
-        {"x": table_x + 370, "lbl": "Warranty", "width": 60},
-        {"x": table_x + 430, "lbl": "Amount", "width": 80}
+        {"x": table_x, "lbl": "S.N", "width": 30},
+        {"x": table_x + 30, "lbl": "Model Name", "width": 110},
+        {"x": table_x + 140, "lbl": "IMEI", "width": 100},
+        {"x": table_x + 240, "lbl": "Battery No.", "width": 75},
+        {"x": table_x + 315, "lbl": "Charger No.", "width": 70},
+        {"x": table_x + 385, "lbl": "Warranty", "width": 60},
+        {"x": table_x + 445, "lbl": "Amount", "width": 65}
     ]
     
     c.setFont("Helvetica-Bold", 10)
     for col in cols:
         if col["x"] > table_x:
-            if col["lbl"] == "Amount":
-                c.line(col["x"], table_bottom, col["x"], table_top)
-            else:
-                c.line(col["x"], total_row_y, col["x"], table_top)
+            # The line before 'Amount' goes all the way down. The rest stop at the total row.
+            bottom_line_y = table_bottom if col["lbl"] == "Amount" else total_row_y
+            c.line(col["x"], bottom_line_y, col["x"], table_top)
         c.drawCentredString(col["x"] + (col["width"] / 2), table_top - 17, col["lbl"])
         
-    start_y = table_top - header_height - 15
-    c.setFont("Helvetica", 10)
+    start_y = table_top - header_height - 17
+    
+    def draw_fit(text, x, y, max_w, align="center"):
+        size = 10
+        c.setFont("Helvetica", size)
+        while c.stringWidth(text, "Helvetica", size) > max_w - 4 and size > 4:
+            size -= 0.5
+            c.setFont("Helvetica", size)
+        if align == "center":
+            c.drawCentredString(x, y, text)
+        elif align == "right":
+            c.drawRightString(x, y, text)
+        else:
+            c.drawString(x, y, text)
+        c.setFont("Helvetica", 10) # restore
+        
     for i, item in enumerate(items):
         y = start_y - (i * row_height)
-        c.drawCentredString(cols[0]["x"] + cols[0]["width"]/2, y, str(i + 1))
-        c.drawString(cols[1]["x"] + 5, y, item.get('product_name', '')[:22])
-        c.drawCentredString(cols[2]["x"] + cols[2]["width"]/2, y, item.get('imei', '-')[:16])
-        c.drawCentredString(cols[3]["x"] + cols[3]["width"]/2, y, item.get('battery_num', '-')[:10])
-        c.drawCentredString(cols[4]["x"] + cols[4]["width"]/2, y, item.get('charger_num', '-')[:10])
-        c.drawCentredString(cols[5]["x"] + cols[5]["width"]/2, y, item.get('warranty', '-')[:8])
-        c.drawRightString(cols[6]["x"] + cols[6]["width"] - 15, y, f"{item.get('final_rate', 0.0):.2f}")
-        c.line(table_x, y - 10, table_x + table_width, y - 10)
+        draw_fit(str(i + 1), cols[0]["x"] + cols[0]["width"]/2, y, cols[0]["width"])
+        draw_fit(item.get('product_name', ''), cols[1]["x"] + 5, y, cols[1]["width"] - 10, "left")
+        draw_fit(item.get('imei', '-'), cols[2]["x"] + cols[2]["width"]/2, y, cols[2]["width"])
+        draw_fit(item.get('battery_num', '-'), cols[3]["x"] + cols[3]["width"]/2, y, cols[3]["width"])
+        draw_fit(item.get('charger_num', '-'), cols[4]["x"] + cols[4]["width"]/2, y, cols[4]["width"])
+        draw_fit(item.get('warranty', '-'), cols[5]["x"] + cols[5]["width"]/2, y, cols[5]["width"])
+        draw_fit(f"{item.get('final_rate', 0.0):.2f}", cols[6]["x"] + cols[6]["width"] - 5, y, cols[6]["width"] - 10, "right")
         
     c.setFont("Helvetica-Bold", 10)
     c.drawString(table_x + 5, table_bottom + 8, "In Words :")
-    c.setFont("Helvetica", 9)
+    c.setFont("Helvetica", 10)
     c.drawString(table_x + 65, table_bottom + 8, total_words)
+    
     c.setFont("Helvetica-Bold", 10)
-    c.drawRightString(cols[6]["x"] - 10, table_bottom + 8, "Total Payment")
-    c.drawRightString(cols[6]["x"] + cols[6]["width"] - 15, table_bottom + 8, f"{total_amount:.2f}")
+    c.drawRightString(cols[6]["x"] - 5, table_bottom + 8, "Total Payment")
+    c.drawRightString(cols[6]["x"] + cols[6]["width"] - 5, table_bottom + 8, f"{total_amount:.2f}")
     
     c.save()
     return pdf_path

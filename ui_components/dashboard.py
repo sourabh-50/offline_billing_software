@@ -33,6 +33,7 @@ class DashboardFrame(ctk.CTkFrame):
         
         self.sales_card = self.create_metric_card(self.stats_container, "Total Sales", "₹ 0.00", "#10b981")
         self.inv_card = self.create_metric_card(self.stats_container, "Total Bills Count", "0", "#3b82f6")
+        self.stock_card = self.create_metric_card(self.stats_container, "Total Stock", "0", "#f59e0b")
         
         # Recent Sales Table Card
         self.sales_table_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
@@ -65,16 +66,17 @@ class DashboardFrame(ctk.CTkFrame):
 
     def on_resize(self, event=None):
         width = self.winfo_width()
-        if width > 600:
-            self.stats_container.columnconfigure(0, weight=1)
-            self.stats_container.columnconfigure(1, weight=1)
+        if width > 700:
+            self.stats_container.columnconfigure((0, 1, 2), weight=1)
             self.sales_card.grid(row=0, column=0, padx=(0, 10), sticky="ew")
-            self.inv_card.grid(row=0, column=1, padx=(10, 0), sticky="ew")
+            self.inv_card.grid(row=0, column=1, padx=10, sticky="ew")
+            self.stock_card.grid(row=0, column=2, padx=(10, 0), sticky="ew")
         else:
             self.stats_container.columnconfigure(0, weight=1)
-            self.stats_container.columnconfigure(1, weight=0)
+            self.stats_container.columnconfigure((1, 2), weight=0)
             self.sales_card.grid(row=0, column=0, padx=0, pady=(0, 10), sticky="ew")
-            self.inv_card.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="ew")
+            self.inv_card.grid(row=1, column=0, padx=0, pady=10, sticky="ew")
+            self.stock_card.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="ew")
 
     def create_metric_card(self, parent, title, value, color):
         card = ctk.CTkFrame(parent, corner_radius=18, border_width=1, border_color=("gray85", "gray20"), height=140)
@@ -131,6 +133,13 @@ class DashboardFrame(ctk.CTkFrame):
             
             cursor.execute(query_details, params)
             records = cursor.fetchall()
+            
+            # Fetch Stock Count
+            cursor.execute("SELECT SUM(quantity) FROM Stock")
+            stock_row = cursor.fetchone()
+            total_stock = stock_row[0] if stock_row[0] else 0
+            self.stock_card.val_label.configure(text=str(total_stock))
+            
             conn.close()
             
             # Clear current table

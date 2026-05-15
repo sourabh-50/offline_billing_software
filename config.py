@@ -2,12 +2,12 @@
 # ScaleAd Premium Billing System v1.1.0
 
 VERSION = "1.1.0"
-APP_NAME = "Omsai Billing Software"
-SIDEBAR_NAME = "OM SAI\nBILLING"
-SHOP_NAME = "Om Sai Mobile Shopee"
-VENDOR_NAME = "ScaleAd"
-VENDOR_WEBSITE = "https://scalead.in"
-SUPPORT_EMAIL = "support@scalead.in"
+APP_NAME = "Offline Billing Software"
+SIDEBAR_NAME = "OFFLINE\nBILLING"
+SHOP_NAME = "My Mobile Shopee"
+VENDOR_NAME = "Generic Vendor"
+VENDOR_WEBSITE = "https://example.com"
+SUPPORT_EMAIL = "support@example.com"
 
 # Design Tokens
 PRIMARY_COLOR = "#3b82f6"

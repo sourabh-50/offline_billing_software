@@ -39,18 +39,26 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
         c_fields = ctk.CTkFrame(cust_card, fg_color="transparent")
         c_fields.pack(fill="x", padx=25, pady=(0, 25))
         
-        self.cust_name = ctkAutocompleteEntry(c_fields, placeholder_text="Full Name", height=45, width=280, font=("Helvetica", 14))
-        self.cust_name.pack(side="left", padx=(0, 15))
+        f_name = ctk.CTkFrame(c_fields, fg_color="transparent")
+        f_name.pack(side="left", padx=(0, 15))
+        ctk.CTkLabel(f_name, text="Full Name", font=("Helvetica", 12, "bold"), text_color=("gray40", "gray70")).pack(anchor="w")
+        self.cust_name = ctk.CTkEntry(f_name, placeholder_text="Full Name", height=45, width=280, font=("Helvetica", 14))
+        self.cust_name.pack(fill="x")
         
+        f_mobile = ctk.CTkFrame(c_fields, fg_color="transparent")
+        f_mobile.pack(side="left", padx=(0, 15))
+        ctk.CTkLabel(f_mobile, text="Mobile No.", font=("Helvetica", 12, "bold"), text_color=("gray40", "gray70")).pack(anchor="w")
         self.mobile_var = ctk.StringVar()
         self.mobile_var.trace_add("write", self.limit_mobile_length)
-        
-        self.cust_mobile = ctkAutocompleteEntry(c_fields, placeholder_text="Mobile No.", height=45, width=200, font=("Helvetica", 14),
+        self.cust_mobile = ctk.CTkEntry(f_mobile, placeholder_text="Mobile No.", height=45, width=200, font=("Helvetica", 14),
                                               textvariable=self.mobile_var)
-        self.cust_mobile.pack(side="left", padx=(0, 15))
+        self.cust_mobile.pack(fill="x")
         
-        self.cust_address = ctk.CTkEntry(c_fields, placeholder_text="Complete Address", height=45, font=("Helvetica", 14))
-        self.cust_address.pack(side="left", fill="x", expand=True)
+        f_addr = ctk.CTkFrame(c_fields, fg_color="transparent")
+        f_addr.pack(side="left", fill="x", expand=True)
+        ctk.CTkLabel(f_addr, text="Complete Address", font=("Helvetica", 12, "bold"), text_color=("gray40", "gray70")).pack(anchor="w")
+        self.cust_address = ctk.CTkEntry(f_addr, placeholder_text="Complete Address", height=45, font=("Helvetica", 14))
+        self.cust_address.pack(fill="x")
 
         # Dynamic Devices Card
         self.products = []
@@ -104,10 +112,12 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
             self.firm_dropdown.configure(values=list(self.firms.keys()))
             self.firm_var.set(list(self.firms.keys())[0])
             
-        # Initialize suggestions
-        self.cust_name.set_suggestions(database.get_all_customer_names())
-        self.cust_mobile.set_suggestions(database.get_all_customer_mobiles())
-        self.all_product_names = database.get_all_product_names()
+        # Initialize suggestions only for products
+        # Merge product names from items and stock
+        self.stock_map = {s[1]: s for s in database.get_all_stock()}
+        historic_names = database.get_all_product_names()
+        self.all_product_names = list(set(list(self.stock_map.keys()) + historic_names))
+        
         for p in self.products:
             p['model'].set_suggestions(self.all_product_names)
 
@@ -121,19 +131,38 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
         p_model = ctkAutocompleteEntry(row_frame, placeholder_text="Model", suggestions=getattr(self, 'all_product_names', []), **args)
         p_model.grid(row=0, column=0, padx=2, sticky="ew")
         
-        p_imei = ctk.CTkEntry(row_frame, placeholder_text="IMEI", **args)
+        def force_upper(*args, var=None):
+            val = var.get()
+            if any(c.islower() for c in val):
+                var.set(val.upper())
+                
+        def force_numeric(*args, var=None):
+            val = var.get()
+            clean = ''.join(c for c in val if c.isdigit() or c == '.')
+            if val != clean:
+                var.set(clean)
+
+        var_imei = ctk.StringVar()
+        var_imei.trace_add("write", lambda *args, v=var_imei: force_upper(var=v))
+        p_imei = ctk.CTkEntry(row_frame, placeholder_text="IMEI", textvariable=var_imei, **args)
         p_imei.grid(row=0, column=1, padx=2, sticky="ew")
         
-        p_batt = ctk.CTkEntry(row_frame, placeholder_text="Batt #", **args)
+        var_batt = ctk.StringVar()
+        var_batt.trace_add("write", lambda *args, v=var_batt: force_upper(var=v))
+        p_batt = ctk.CTkEntry(row_frame, placeholder_text="Batt #", textvariable=var_batt, **args)
         p_batt.grid(row=0, column=2, padx=2, sticky="ew")
         
-        p_chg = ctk.CTkEntry(row_frame, placeholder_text="Chg #", **args)
+        var_chg = ctk.StringVar()
+        var_chg.trace_add("write", lambda *args, v=var_chg: force_upper(var=v))
+        p_chg = ctk.CTkEntry(row_frame, placeholder_text="Chg #", textvariable=var_chg, **args)
         p_chg.grid(row=0, column=3, padx=2, sticky="ew")
         
         p_war = ctk.CTkEntry(row_frame, placeholder_text="6m / 1y", **args)
         p_war.grid(row=0, column=4, padx=2, sticky="ew")
         
-        p_price = ctk.CTkEntry(row_frame, placeholder_text="Price", **args)
+        var_price = ctk.StringVar()
+        var_price.trace_add("write", lambda *args, v=var_price: force_numeric(var=v))
+        p_price = ctk.CTkEntry(row_frame, placeholder_text="Price", textvariable=var_price, **args)
         p_price.grid(row=0, column=5, padx=2, sticky="ew")
         
         def remove_me():
@@ -145,6 +174,18 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
         rm_btn = ctk.CTkButton(row_frame, text="✖", width=40, height=40, fg_color="#ef4444", hover_color="#dc2626", text_color="#ffffff", command=remove_me)
         rm_btn.grid(row=0, column=6, padx=(5, 0), sticky="e")
         
+        def on_product_select(event):
+            name = p_model.get()
+            if name in self.stock_map:
+                stock_item = self.stock_map[name]
+                # sid, model, imei, qty, price
+                if not p_imei.get():
+                    p_imei.insert(0, stock_item[2] or "")
+                if not p_price.get():
+                    p_price.insert(0, str(stock_item[4]))
+                self.update_totals()
+
+        p_model.bind("<<AutocompleteSelected>>", on_product_select)
         p_price.bind("<KeyRelease>", lambda e: self.update_totals())
 
         self.products.append({
