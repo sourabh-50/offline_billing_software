@@ -41,10 +41,10 @@ class StockFrame(ctk.CTkFrame):
         self.qty_entry = ctk.CTkEntry(form_panel, placeholder_text="Quantity", height=45, font=("Helvetica", 14), textvariable=self.var_qty)
         self.qty_entry.pack(fill="x", padx=25, pady=(0, 10))
         
-        ctk.CTkLabel(form_panel, text="Price (₹)", font=("Helvetica", 12, "bold"), text_color=("gray40", "gray70")).pack(anchor="w", padx=25)
+        ctk.CTkLabel(form_panel, text="Unit Price (₹)", font=("Helvetica", 12, "bold"), text_color=("gray40", "gray70")).pack(anchor="w", padx=25)
         self.var_price = ctk.StringVar()
         self.var_price.trace_add("write", lambda *args, v=self.var_price: force_numeric(var=v))
-        self.price_entry = ctk.CTkEntry(form_panel, placeholder_text="Price (₹)", height=45, font=("Helvetica", 14), textvariable=self.var_price)
+        self.price_entry = ctk.CTkEntry(form_panel, placeholder_text="Unit Price (₹)", height=45, font=("Helvetica", 14), textvariable=self.var_price)
         self.price_entry.pack(fill="x", padx=25, pady=(0, 10))
         
         self.add_btn = ctk.CTkButton(form_panel, text="Add to Stock", font=("Helvetica", 16, "bold"), height=50, fg_color="#10b981", hover_color="#059669", command=self.save_stock)
@@ -70,7 +70,7 @@ class StockFrame(ctk.CTkFrame):
         headers_frame.pack(fill="x", padx=25, pady=5)
         headers_frame.pack_propagate(False)
         
-        cols = [("Model Name", 0.45), ("Qty", 0.2), ("Price", 0.2), ("Actions", 0.15)]
+        cols = [("Model Name", 0.45), ("Qty", 0.2), ("Total Price", 0.2), ("Actions", 0.15)]
         for text, weight in cols:
             lbl = ctk.CTkLabel(headers_frame, text=text, font=("Helvetica", 12, "bold"), text_color=("gray40", "gray70"))
             lbl.place(relx=sum(c[1] for c in cols[:cols.index((text, weight))]) + 0.05, rely=0.5, anchor="w")
@@ -110,8 +110,10 @@ class StockFrame(ctk.CTkFrame):
             ctk.CTkLabel(qty_frame, text=str(qty), font=("Helvetica", 13, "bold"), text_color=qty_color).pack(side="left", padx=5)
             ctk.CTkButton(qty_frame, text="+", width=20, height=20, font=("Helvetica", 14, "bold"), fg_color="transparent", text_color="gray50", hover_color=("gray85", "gray20"), command=lambda i=sid: self.adjust_qty(i, 1)).pack(side="left")
             
-            # Price
-            ctk.CTkLabel(row, text=f"₹{price:,.2f}", font=("Helvetica", 13)).place(relx=0.7, rely=0.5, anchor="w", relwidth=0.15)
+            # Total Price (dynamically adjusted based on qty)
+            total_price = qty * price
+            price_text = f"₹{total_price:,.2f}"
+            ctk.CTkLabel(row, text=price_text, font=("Helvetica", 13)).place(relx=0.7, rely=0.5, anchor="w", relwidth=0.15)
             
             # Actions (Edit/Delete)
             action_frame = ctk.CTkFrame(row, fg_color="transparent")
