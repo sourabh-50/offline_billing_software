@@ -75,43 +75,43 @@ def generate_invoice_pdf(pdf_path, firm_name, gst_number, firm_address, invoice_
     
     # Row 1: Name & Invoice No
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(20, 635, "Name : ")
+    c.drawString(40, 635, "Name : ")
     c.setFont("Helvetica", 11)
-    c.drawString(70, 635, customer_name[:35])
+    c.drawString(90, 635, customer_name[:35])
     c.setLineWidth(0.5)
-    c.line(65, 633, 280, 633)
+    c.line(85, 633, 280, 633)
     
     c.setFont("Helvetica-Bold", 11)
-    c.drawRightString(480, 635, "Invoice No. : ")
+    c.drawRightString(460, 635, "Invoice No. : ")
     c.setFont("Helvetica", 11)
-    c.drawString(485, 635, invoice_number)
-    c.line(485, 633, 575, 633)
+    c.drawString(465, 635, invoice_number)
+    c.line(465, 633, 555, 633)
     
     # Row 2: Mobile & Date
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(20, 610, "Mobile : ")
+    c.drawString(40, 610, "Mobile : ")
     c.setFont("Helvetica", 11)
-    c.drawString(75, 610, customer_mobile[:15])
-    c.line(70, 608, 280, 608)
+    c.drawString(90, 610, customer_mobile[:15])
+    c.line(85, 608, 280, 608)
     
     c.setFont("Helvetica-Bold", 11)
-    c.drawRightString(480, 610, "Date : ")
+    c.drawRightString(460, 610, "Date : ")
     c.setFont("Helvetica", 11)
-    c.drawString(485, 610, date)
-    c.line(485, 608, 575, 608)
+    c.drawString(465, 610, date)
+    c.line(465, 608, 555, 608)
     
     # Row 3: Address
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(20, 585, "Address : ")
+    c.drawString(40, 585, "Address : ")
     c.setFont("Helvetica", 11)
-    c.drawString(80, 585, customer_address[:85])
-    c.line(75, 583, 575, 583)
+    c.drawString(100, 585, customer_address[:85])
+    c.line(95, 583, 555, 583)
     
     c.setFont("Helvetica-Bold", 14)
     c.drawCentredString(297.5, 545, "Details")
     
     # 4. Draw Table Dynamically (Centered on page)
-    table_width = 555
+    table_width = 515
     table_x = 297.5 - (table_width / 2)
     table_top = 525
     row_height = 25
@@ -136,12 +136,12 @@ def generate_invoice_pdf(pdf_path, firm_name, gst_number, firm_address, invoice_
     
     cols = [
         {"x": table_x, "lbl": "S.N", "width": 30},
-        {"x": table_x + 30, "lbl": "Model Name", "width": 130},
-        {"x": table_x + 160, "lbl": "IMEI", "width": 120},
-        {"x": table_x + 280, "lbl": "Battery No.", "width": 80},
-        {"x": table_x + 360, "lbl": "Charger No.", "width": 70},
-        {"x": table_x + 430, "lbl": "Warranty", "width": 60},
-        {"x": table_x + 490, "lbl": "Amount", "width": 65}
+        {"x": table_x + 30, "lbl": "Model Name", "width": 115},
+        {"x": table_x + 145, "lbl": "IMEI", "width": 105},
+        {"x": table_x + 250, "lbl": "Battery No.", "width": 75},
+        {"x": table_x + 325, "lbl": "Charger No.", "width": 70},
+        {"x": table_x + 395, "lbl": "Warranty", "width": 60},
+        {"x": table_x + 455, "lbl": "Amount", "width": 60}
     ]
     
     c.setFont("Helvetica-Bold", 10)
