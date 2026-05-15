@@ -27,6 +27,7 @@ class SearchFrame(ctk.CTkFrame):
         self.entry_query = ctk.CTkEntry(search_bar, placeholder_text="Search by Name, Mobile, or ID...", width=450, height=45, font=("Helvetica", 14))
         self.entry_query.pack(side="left", padx=25, pady=20)
         self.entry_query.bind("<Return>", lambda e: self.do_search())
+        self.entry_query.bind("<KeyRelease>", lambda e: self.on_search_typing())
         
         self.search_btn = ctk.CTkButton(search_bar, text="Search", font=("Helvetica", 14, "bold"), height=45, width=150, command=self.do_search)
         self.search_btn.pack(side="left", padx=(0, 25), pady=20)
@@ -71,6 +72,11 @@ class SearchFrame(ctk.CTkFrame):
         self.tree.bind("<Double-1>", self.on_double_click)
         
         self.results_data = []
+
+    def on_search_typing(self):
+        if not self.entry_query.get().strip():
+            self.tree.delete(*self.tree.get_children())
+            self.results_data = []
 
     def do_search(self):
         self.update_table_style()

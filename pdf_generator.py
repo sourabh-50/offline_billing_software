@@ -108,12 +108,12 @@ def generate_invoice_pdf(pdf_path, firm_name, gst_number, firm_address, invoice_
     c.line(95, 583, 555, 583)
     
     c.setFont("Helvetica-Bold", 14)
-    c.drawCentredString(297.5, 545, "Details")
+    c.drawCentredString(297.5, 560, "Details")
     
     # 4. Draw Table Dynamically (Centered on page)
     table_width = 515
     table_x = 297.5 - (table_width / 2)
-    table_top = 525
+    table_top = 540
     row_height = 25
     header_height = 25
     total_row_height = 25
