@@ -6,15 +6,19 @@ A high-performance, offline-first Windows desktop application designed for mobil
 ---
 
 ## 🚀 Key Features
+- **Dynamic Stock Management**: Real-time total price calculation that updates instantly as you adjust item quantities.
+- **Professional PDF Invoicing**: 
+  - **Symmetrical Layout**: Perfectly aligned margins and headers for a premium look.
+  - **Smart Text Fitting**: Uniform font sizes with intelligent truncation to prevent text overlap.
 - **GST-Free Billing**: Optimized for shops that do not require complex tax filing.
 - **Modular Branding**: Easily customizable for different clients (Headers/Footers/Icons).
-- **Dynamic Invoicing**: Support for multiple items, IMEI tracking, and automatic totals.
-- **Smart Reports**:
+- **Advanced Search & Reports**:
+  - **Auto-Clearing Search**: Responsive search bills interface that clears instantly when the query is removed.
   - **Excel Exports**: Auto-adjusting columns for clean accounting.
   - **Merged PDF Backup**: Combine all monthly invoices into a single master PDF.
+- **Adaptive UI**: Automatically launches in full-screen mode, adapting to any monitor resolution.
 - **Security**: Built-in password protection and hardware-locked licensing.
-- **Cross-Platform Core**: Optimized for Windows 7, 10, and 11.
-- **Modern UI**: Theme-aware interface (Light/Dark Mode).
+- **Modern Design**: Theme-aware interface built with CustomTkinter (Light/Dark Mode).
 
 ---
 

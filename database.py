@@ -130,7 +130,7 @@ def init_db():
         cursor.execute('''
             INSERT INTO Firms (firm_name, gst_number, address, contact, invoice_prefix)
             VALUES (?, ?, ?, ?, ?)
-        ''', (config.SHOP_NAME, "27GEFPS4065Q1ZM", "Chh. Shivaji Maharaj Chowk, G. Sinagi Peth, S.T. Stand Road, Kurul, Taluka Mohol, Solapur", "9804117777", "INV"))
+        ''', (config.SHOP_NAME, "27GEFPS4065Q1ZM", "Chh. Shivaji Maharaj Chowk, G. Sinagi Peth, S.T. Stand Road, Kurul, Taluka Mohol, Solapur", "9804117777", "INV-"))
 
     conn.commit()
     conn.close()
@@ -287,10 +287,24 @@ def get_next_invoice_number(firm_id):
         return "INV-0001"
     prefix = prefix_row[0]
 
-    cursor.execute("SELECT COUNT(*) FROM Invoices WHERE firm_id=?", (firm_id,))
-    count = cursor.fetchone()[0] + 1
+    # Find the maximum numeric part of existing invoice numbers with this prefix
+    cursor.execute("SELECT invoice_number FROM Invoices WHERE firm_id=?", (firm_id,))
+    rows = cursor.fetchall()
+    
+    max_num = 0
+    for row in rows:
+        inv_str = row[0]
+        if inv_str.startswith(prefix):
+            try:
+                num_part = int(inv_str[len(prefix):])
+                if num_part > max_num:
+                    max_num = num_part
+            except (ValueError, TypeError):
+                continue
+    
+    next_num = max_num + 1
     conn.close()
-    return f"{prefix}{count:04d}"
+    return f"{prefix}{next_num:04d}"
 
 def get_all_customer_names():
     conn = sqlite3.connect(DB_NAME)
