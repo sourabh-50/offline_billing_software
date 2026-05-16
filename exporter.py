@@ -13,7 +13,7 @@ def get_sales_data(start_date=None, end_date=None):
     cursor = conn.cursor()
     query = '''
         SELECT i.invoice_number, i.date, c.name as Customer_Name, 
-               ii.product_name, ii.imei, i.total_amount
+               ii.product_name, ii.hsn, i.total_amount
         FROM Invoices i
         JOIN Customers c ON i.customer_id = c.customer_id
         JOIN Invoice_Items ii ON i.invoice_id = ii.invoice_id
