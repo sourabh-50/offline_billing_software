@@ -5,6 +5,7 @@ import qrcode
 import os
 import ctypes
 import sys
+import datetime
 
 import config
 from database import is_auth_setup, setup_auth, verify_auth, init_db, remove_auth
