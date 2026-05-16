@@ -121,18 +121,43 @@ class ReportsFrame(ctk.CTkFrame):
         inputs_frame = ctk.CTkFrame(config_card, fg_color="transparent")
         inputs_frame.pack(pady=40, padx=40)
         
-        # Smart Date Selection
-        ctk.CTkLabel(inputs_frame, text="Start Date:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).grid(row=0, column=0, padx=15, sticky="e")
-        s_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
-        s_frame.grid(row=0, column=1, padx=15, pady=10)
-        self.start_cal = ctkAutocompleteEntry(s_frame, width=170, height=45, placeholder_text="YYYY-MM-DD")
+        # Timeline Dropdown
+        ctk.CTkLabel(inputs_frame, text="Select Period:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).grid(row=0, column=0, padx=15, sticky="e")
+        self.report_tl_var = ctk.StringVar(value="Select Period")
+        
+        # Container for date inputs (managed by dropdown)
+        self.date_inputs_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
+        
+        def on_report_tl_change(choice):
+            if choice == "Custom Range":
+                self.date_inputs_frame.grid(row=0, column=2, columnspan=2, sticky="w")
+            else:
+                self.date_inputs_frame.grid_remove()
+            self.validate_buttons()
+                
+        self.report_tl_menu = ctk.CTkOptionMenu(inputs_frame, variable=self.report_tl_var, 
+                                               values=["Today", "This Week", "This Month", "This Year", "Previous Year", "Custom Range"],
+                                               command=on_report_tl_change, width=200, height=45, font=("Helvetica", 14))
+        self.report_tl_menu.grid(row=0, column=1, padx=15, sticky="w")
+        
+        # Date Inputs inside the sub-frame
+        ctk.CTkLabel(self.date_inputs_frame, text="Start Date:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).pack(side="left", padx=10)
+        s_frame = ctk.CTkFrame(self.date_inputs_frame, fg_color="transparent")
+        s_frame.pack(side="left", padx=5)
+        
+        self.start_var = ctk.StringVar()
+        self.start_var.trace_add("write", lambda *args: self.validate_buttons())
+        self.start_cal = ctkAutocompleteEntry(s_frame, width=150, height=45, placeholder_text="YYYY-MM-DD", textvariable=self.start_var)
         self.start_cal.pack(side="left")
         ctk.CTkButton(s_frame, text="📅", width=45, height=45, font=("Helvetica", 18), command=lambda: self.open_calendar(self.start_cal)).pack(side="left", padx=(5,0))
         
-        ctk.CTkLabel(inputs_frame, text="End Date:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).grid(row=0, column=2, padx=15, sticky="e")
-        e_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
-        e_frame.grid(row=0, column=3, padx=15, pady=10)
-        self.end_cal = ctkAutocompleteEntry(e_frame, width=170, height=45, placeholder_text="YYYY-MM-DD")
+        ctk.CTkLabel(self.date_inputs_frame, text="End Date:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).pack(side="left", padx=10)
+        e_frame = ctk.CTkFrame(self.date_inputs_frame, fg_color="transparent")
+        e_frame.pack(side="left", padx=5)
+        
+        self.end_var = ctk.StringVar()
+        self.end_var.trace_add("write", lambda *args: self.validate_buttons())
+        self.end_cal = ctkAutocompleteEntry(e_frame, width=150, height=45, placeholder_text="YYYY-MM-DD", textvariable=self.end_var)
         self.end_cal.pack(side="left")
         ctk.CTkButton(e_frame, text="📅", width=45, height=45, font=("Helvetica", 18), command=lambda: self.open_calendar(self.end_cal)).pack(side="left", padx=(5,0))
         
@@ -142,14 +167,16 @@ class ReportsFrame(ctk.CTkFrame):
 
         actions_frame = ctk.CTkFrame(self, fg_color="transparent")
         actions_frame.pack(fill="x", pady=10)
+        btns_frame = ctk.CTkFrame(actions_frame, fg_color="transparent")
+        btns_frame.pack(anchor="center")
         
-        btn_args = {"font": ("Helvetica", 16, "bold"), "height": 55, "width": 260}
+        self.excel_btn = ctk.CTkButton(btns_frame, text="📦 Export to Excel", font=("Helvetica", 16, "bold"), fg_color="#10b981", hover_color="#059669", height=55, width=220, command=self.export_excel)
+        self.excel_btn.pack(side="left", padx=10)
         
-        self.btn_e = ctk.CTkButton(actions_frame, text="📊 Export to Excel", fg_color="#10b981", hover_color="#059669", command=self.export_excel, **btn_args)
-        self.btn_e.pack(side="left", padx=(0, 20))
+        self.pdf_btn = ctk.CTkButton(btns_frame, text="📄 Export to PDF", font=("Helvetica", 16, "bold"), fg_color="#3b82f6", hover_color="#2563eb", height=55, width=220, command=self.export_pdf)
+        self.pdf_btn.pack(side="left", padx=10)
         
-        self.btn_p = ctk.CTkButton(actions_frame, text="📑 Export to PDF", fg_color="#3b82f6", hover_color="#2563eb", command=self.export_pdf, **btn_args)
-        self.btn_p.pack(side="left")
+        self.validate_buttons()
 
     def open_calendar(self, entry_widget):
         try:
@@ -215,6 +242,9 @@ class ReportsFrame(ctk.CTkFrame):
         ]
         self.start_cal.set_suggestions(suggestions)
         self.end_cal.set_suggestions(suggestions)
+        # Clear entries to force manual selection or suggestion pick
+        self.start_cal.delete(0, 'end')
+        self.end_cal.delete(0, 'end')
 
     def auto_format_date(self, widget):
         val = widget.get().replace("-", "")
@@ -224,11 +254,51 @@ class ReportsFrame(ctk.CTkFrame):
                 widget.delete(0, 'end')
                 widget.insert(0, formatted)
 
+    def get_active_range(self):
+        choice = self.report_tl_var.get()
+        now = datetime.now()
+        s, e = "", ""
+        
+        if choice == "Today":
+            s = e = now.strftime("%Y-%m-%d")
+        elif choice == "This Week":
+            s = (now - timedelta(days=now.weekday())).strftime("%Y-%m-%d")
+            e = now.strftime("%Y-%m-%d")
+        elif choice == "This Month":
+            s = now.strftime("%Y-%m-01")
+            e = now.strftime("%Y-%m-%d")
+        elif choice == "This Year":
+            s = now.strftime("%Y-01-01")
+            e = now.strftime("%Y-%m-%d")
+        elif choice == "Previous Year":
+            prev_year = now.year - 1
+            s = f"{prev_year}-01-01"
+            e = f"{prev_year}-12-31"
+        elif choice == "Custom Range":
+            s = self.start_cal.get().strip()
+            e = self.end_cal.get().strip()
+            # Basic validation against placeholder
+            if s == "YYYY-MM-DD" or e == "YYYY-MM-DD":
+                s = e = ""
+                
+        return s, e
+
+    def validate_buttons(self):
+        s, e = self.get_active_range()
+        if s and e:
+            self.excel_btn.configure(state="normal", opacity=1.0)
+            self.pdf_btn.configure(state="normal", opacity=1.0)
+        else:
+            self.excel_btn.configure(state="disabled", opacity=0.6)
+            self.pdf_btn.configure(state="disabled", opacity=0.6)
+
     def export_excel(self):
         try:
-            s = self.start_cal.get()
-            e = self.end_cal.get()
-            path = os.path.abspath(f"reports/Sales_{s}_to_{e}.xlsx")
+            s, e = self.get_active_range()
+            if not s or not e:
+                messagebox.showwarning("Selection Required", "Please select a timeline or enter a valid Start and End date.")
+                return
+            path = os.path.join(database.BASE_DIR, "reports", f"Sales_{s}_to_{e}.xlsx")
             exporter.export_sales_excel(s, e, path)
             messagebox.showinfo("Success", f"Excel report saved to:\n{path}")
         except Exception as ex:
@@ -236,9 +306,11 @@ class ReportsFrame(ctk.CTkFrame):
 
     def export_pdf(self):
         try:
-            s = self.start_cal.get()
-            e = self.end_cal.get()
-            path = os.path.abspath(f"reports/Sales_{s}_to_{e}.pdf")
+            s, e = self.get_active_range()
+            if not s or not e:
+                messagebox.showwarning("Selection Required", "Please select a timeline or enter a valid Start and End date.")
+                return
+            path = os.path.join(database.BASE_DIR, "reports", f"Sales_{s}_to_{e}.pdf")
             exporter.export_sales_pdf(s, e, path)
             messagebox.showinfo("Success", f"PDF report saved to:\n{path}")
         except Exception as ex:

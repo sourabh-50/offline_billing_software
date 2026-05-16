@@ -283,19 +283,58 @@ class App(ctk.CTk):
         ctk.CTkLabel(modal, text="Excel Data Backup", font=("Helvetica", 24, "bold")).pack(pady=(40, 10))
         ctk.CTkLabel(modal, text="Select which records to export to Excel:", font=("Helvetica", 15), text_color=("gray50", "gray70")).pack(pady=(0, 35))
         
-        timeline_var = ctk.StringVar(value="This Month")
-        dropdown = ctk.CTkOptionMenu(modal, variable=timeline_var, values=["Today", "This Week", "This Month", "This Year", "All Time"], width=300, height=50, font=("Helvetica", 15))
+        timeline_var = ctk.StringVar(value="Select Timeline")
+        
+        # Container for custom dates
+        custom_dates_frame = ctk.CTkFrame(modal, fg_color="transparent")
+        
+        start_date_var = ctk.StringVar()
+        end_date_var = ctk.StringVar()
+        
+        def on_timeline_change(choice):
+            if choice == "Custom Range":
+                custom_dates_frame.pack(pady=10)
+                modal.geometry("480x520")
+            else:
+                custom_dates_frame.pack_forget()
+                modal.geometry("480x380")
+        
+        dropdown = ctk.CTkOptionMenu(modal, variable=timeline_var, values=["Today", "This Week", "This Month", "This Year", "All Time", "Custom Range"], 
+                                    width=300, height=50, font=("Helvetica", 15), command=on_timeline_change)
         dropdown.pack(pady=10)
+        
+        # Setup Custom Date Inputs
+        row1 = ctk.CTkFrame(custom_dates_frame, fg_color="transparent")
+        row1.pack(pady=5)
+        ctk.CTkLabel(row1, text="From:", font=("Helvetica", 12, "bold")).pack(side="left", padx=5)
+        start_ent = ctk.CTkEntry(row1, placeholder_text="YYYY-MM-DD", width=150, textvariable=start_date_var)
+        start_ent.pack(side="left", padx=5)
+        
+        row2 = ctk.CTkFrame(custom_dates_frame, fg_color="transparent")
+        row2.pack(pady=5)
+        ctk.CTkLabel(row2, text="To:", font=("Helvetica", 12, "bold")).pack(side="left", padx=15)
+        end_ent = ctk.CTkEntry(row2, placeholder_text="YYYY-MM-DD", width=150, textvariable=end_date_var)
+        end_ent.pack(side="left", padx=5)
         
         def process_excel_backup():
             tl = timeline_var.get()
+            if tl == "Select Timeline":
+                messagebox.showwarning("Selection Required", "Please select a backup timeline.")
+                return
+                
+            s = start_date_var.get()
+            e = end_date_var.get()
+            if tl == "Custom Range" and (not s or not e):
+                messagebox.showwarning("Input Required", "Please enter both Start and End dates for Custom Range.")
+                return
+
             import tkinter.filedialog as filedialog
             save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", initialfile=f"Bills_Backup_{tl.replace(' ','_')}.xlsx", title="Save Excel Backup", filetypes=[("Excel files", "*.xlsx")])
             if not save_path:
                 return
             
             try:
-                final_path = backup_service.export_timeline_backup(tl, save_path)
+                final_path = backup_service.export_timeline_backup(tl, save_path, s, e)
                 backup_service.create_backup()
                 messagebox.showinfo("Success", f"Excel backup saved to:\n{final_path}")
                 modal.destroy()
@@ -306,13 +345,23 @@ class App(ctk.CTk):
 
         def process_pdf_backup():
             tl = timeline_var.get()
+            if tl == "Select Timeline":
+                messagebox.showwarning("Selection Required", "Please select a backup timeline.")
+                return
+                
+            s = start_date_var.get()
+            e = end_date_var.get()
+            if tl == "Custom Range" and (not s or not e):
+                messagebox.showwarning("Input Required", "Please enter both Start and End dates for Custom Range.")
+                return
+
             import tkinter.filedialog as filedialog
             save_path = filedialog.asksaveasfilename(defaultextension=".pdf", initialfile=f"Full_PDF_Backup_{tl.replace(' ','_')}.pdf", title="Save Merged PDF", filetypes=[("PDF files", "*.pdf")])
             if not save_path:
                 return
             
             try:
-                final_path = backup_service.export_pdf_merged(tl, save_path)
+                final_path = backup_service.export_pdf_merged(tl, save_path, s, e)
                 messagebox.showinfo("Success", f"Merged PDF saved to:\n{final_path}")
                 modal.destroy()
             except ValueError as e:

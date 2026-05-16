@@ -12,7 +12,15 @@ class StockFrame(ctk.CTkFrame):
         hdr = ctk.CTkLabel(header_frame, text="Stock Management", font=("Helvetica", 32, "bold"))
         hdr.pack(anchor="w")
         sub_hdr = ctk.CTkLabel(header_frame, text="Track and manage your mobile inventory", font=("Helvetica", 14), text_color=("gray50", "gray70"))
-        sub_hdr.pack(anchor="w", pady=(5, 0))
+        sub_hdr.pack(side="left", pady=(5, 0))
+        
+        # Total Stock Card at top right
+        self.stock_summary_card = ctk.CTkFrame(header_frame, corner_radius=15, fg_color=("#ffffff", "#1e1e1e"), border_width=1, border_color=("gray85", "gray20"))
+        self.stock_summary_card.pack(side="right", padx=10)
+        
+        ctk.CTkLabel(self.stock_summary_card, text="Total Stock Count", font=("Helvetica", 12, "bold"), text_color=("gray40", "gray70")).pack(padx=20, pady=(10, 0))
+        self.total_stock_lbl = ctk.CTkLabel(self.stock_summary_card, text="0", font=("Helvetica", 24, "bold"), text_color="#f59e0b")
+        self.total_stock_lbl.pack(padx=20, pady=(0, 10))
 
         # Main Layout: Left (Form) and Right (Table)
         content_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -89,6 +97,9 @@ class StockFrame(ctk.CTkFrame):
             
         search_term = self.search_entry.get().lower()
         stock_data = database.get_all_stock()
+        
+        total_q = sum(item[3] for item in stock_data)
+        self.total_stock_lbl.configure(text=str(total_q))
         
         for item in stock_data:
             sid, model, imei, qty, price = item

@@ -21,7 +21,7 @@ def create_backup():
                     zipf.write(full_path, arcname=arc_name)
     return backup_path
 
-def export_timeline_backup(timeline: str, save_path: str):
+def export_timeline_backup(timeline: str, save_path: str, start_date=None, end_date=None):
     """
     Exports a professional Excel (.xlsx) timeline report using openpyxl.
     """
@@ -50,6 +50,12 @@ def export_timeline_backup(timeline: str, save_path: str):
         start = now.strftime("%Y-01-01")
         query += " WHERE substr(i.date, 1, 10) >= ?"
         params = (start,)
+    elif timeline == "Custom Range" and start_date and end_date:
+        query += " WHERE substr(i.date, 1, 10) >= ? AND substr(i.date, 1, 10) <= ?"
+        params = (start_date, end_date)
+    else:
+        # Default fallback or error
+        pass
     
     cursor.execute(query, params)
     cols = [desc[0] for desc in cursor.description]
@@ -90,7 +96,7 @@ def export_timeline_backup(timeline: str, save_path: str):
             
     return save_path
 
-def export_pdf_merged(timeline: str, save_path: str):
+def export_pdf_merged(timeline: str, save_path: str, start_date=None, end_date=None):
     """
     Exports a single merged PDF of all invoices based on timeline.
     """
@@ -117,6 +123,9 @@ def export_pdf_merged(timeline: str, save_path: str):
         start = now.strftime("%Y-01-01")
         query += " WHERE substr(date, 1, 10) >= ?"
         params = (start,)
+    elif timeline == "Custom Range" and start_date and end_date:
+        query += " WHERE substr(date, 1, 10) >= ? AND substr(date, 1, 10) <= ?"
+        params = (start_date, end_date)
     
     cursor = conn.cursor()
     cursor.execute(query, params)

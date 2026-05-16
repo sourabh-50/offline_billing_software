@@ -121,6 +121,11 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
         for p in self.products:
             p['model'].set_suggestions(self.all_product_names)
 
+    def get_product_suggestions(self):
+        # Dynamically fetch latest names ONLY from stock
+        stock_names = [s[1] for s in database.get_all_stock()]
+        return list(set(stock_names))
+
     def add_product_row(self):
         row_frame = ctk.CTkFrame(self.prod_rows_frame, fg_color="transparent")
         row_frame.pack(fill="x", pady=5)
@@ -128,7 +133,7 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
         row_frame.columnconfigure(6, weight=0, minsize=50)
         
         args = {"font": ("Helvetica", 13), "height": 40}
-        p_model = ctkAutocompleteEntry(row_frame, placeholder_text="Model", suggestions=getattr(self, 'all_product_names', []), **args)
+        p_model = ctkAutocompleteEntry(row_frame, placeholder_text="Model", suggestions_callback=self.get_product_suggestions, **args)
         p_model.grid(row=0, column=0, padx=2, sticky="ew")
         
         def force_upper(*args, var=None):

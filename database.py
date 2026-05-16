@@ -243,8 +243,9 @@ def create_invoice(invoice_number, firm_id, customer_id, date, subtotal, cgst, s
     ))
     invoice_id = cursor.lastrowid
 
-    # Insert Items
+    # Insert Items and Decrement Stock (ACID compliant transaction)
     for item in items:
+        # Insert Item
         cursor.execute('''
             INSERT INTO Invoice_Items (
                 invoice_id, product_name, imei, hsn, quantity, price, discount, final_rate,
@@ -256,13 +257,18 @@ def create_invoice(invoice_number, firm_id, customer_id, date, subtotal, cgst, s
             item.get('battery_num', ''), item.get('charger_num', ''), item.get('warranty', '')
         ))
         
+        # Decrement Stock
+        cursor.execute('''
+            UPDATE Stock 
+            SET quantity = quantity - 1 
+            WHERE stock_id = (
+                SELECT stock_id FROM Stock 
+                WHERE UPPER(model_name)=UPPER(?) AND quantity > 0 LIMIT 1
+            )
+        ''', (item.get('product_name', ''),))
+        
     conn.commit()
     conn.close()
-
-    # Decrement Stock after releasing the main connection lock
-    for item in items:
-        decrement_stock(item.get('product_name', ''), item.get('imei', ''))
-
     return invoice_id
 
 def search_invoices(query=""):
@@ -376,7 +382,7 @@ def decrement_stock(model_name, imei=None):
         SET quantity = quantity - 1 
         WHERE stock_id = (
             SELECT stock_id FROM Stock 
-            WHERE model_name=? AND quantity > 0 LIMIT 1
+            WHERE UPPER(model_name)=UPPER(?) AND quantity > 0 LIMIT 1
         )
     ''', (model_name,))
     conn.commit()

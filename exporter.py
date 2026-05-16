@@ -88,12 +88,16 @@ def export_sales_pdf(start_date, end_date, output_path):
     y = height - 145
     if rows:
         # Group to avoid repeating invoice fields unnecessarily, but simple flattened table is fine
-        data = [cols]
+        # Format headers
+        formatted_cols = [c.replace("_", " ").title() for c in cols]
+        data = [formatted_cols]
         for row in rows:
             # Convert row to strings
             data.append([str(val) for val in row])
 
-        table = Table(data)
+        # Define explicit column widths for precise centering
+        col_widths = [70, 70, 100, 150, 100, 60]
+        table = Table(data, colWidths=col_widths)
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
@@ -103,9 +107,9 @@ def export_sales_pdf(start_date, end_date, output_path):
             ('FONTSIZE', (0, 0), (-1, -1), 8),
         ]))
         
-        table.wrapOn(c, width - 60, height)
-        # Assuming fits on one page for simplicity
-        table.drawOn(c, 30, y - table._height)
+        table_w, table_h = table.wrapOn(c, width - 60, height)
+        # Assuming fits on one page for simplicity, center justify the table
+        table.drawOn(c, (width - table_w) / 2.0, y - table_h)
 
     c.save()
     return output_path
