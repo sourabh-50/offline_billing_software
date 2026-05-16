@@ -110,8 +110,21 @@ class ctkAutocompleteEntry(ctk.CTkEntry):
         self._lb_open = False
 
     def _on_focus_out(self, event):
-        # Small delay to allow button click
-        self.after(200, self._close_lb)
+        # Close with a delay to allow for mouse clicks on suggestions
+        def delayed_close():
+            try:
+                # If the app window is still active but focus is not on this entry or its buttons
+                curr_focus = self.focus_get()
+                if curr_focus != self:
+                    # If we have buttons, check if focus is on any of them (unlikely for Toplevel but safe)
+                    is_btn_focus = any(curr_focus == btn for btn in self._btns) if hasattr(self, '_btns') else False
+                    if not is_btn_focus:
+                        self._close_lb()
+            except Exception:
+                self._close_lb()
+        
+        # Increase delay slightly and use a more reliable check
+        self.after(300, delayed_close)
 
     def _on_focus_in(self, event):
         pass

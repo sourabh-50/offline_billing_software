@@ -135,7 +135,9 @@ def init_db():
     conn.commit()
     conn.close()
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    # Added salt for improved security against rainbow tables
+    salt = "scalead_secure_salt_2024"
+    return hashlib.sha256((password + salt).encode()).hexdigest()
 
 def is_auth_setup():
     conn = sqlite3.connect(DB_NAME)
