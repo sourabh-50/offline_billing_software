@@ -180,7 +180,7 @@ class ReportsFrame(ctk.CTkFrame):
         self.end_cal.bind("<KeyRelease>", lambda e: self.auto_format_date(self.end_cal), add="+")
 
         actions_frame = ctk.CTkFrame(self, fg_color="transparent")
-        actions_frame.pack(fill="x", pady=10)
+        actions_frame.pack(fill="x", pady=20)
         btns_frame = ctk.CTkFrame(actions_frame, fg_color="transparent")
         btns_frame.pack(anchor="center")
         
