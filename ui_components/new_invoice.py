@@ -9,13 +9,13 @@ from ui_components.autocomplete import ctkAutocompleteEntry
 import subprocess
 import sys
 
-class NewInvoiceFrame(ctk.CTkScrollableFrame):
+class NewInvoiceFrame(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="transparent")
         
         # Header Area
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        header_frame.pack(fill="x", pady=(0, 25))
+        header_frame.pack(fill="x", pady=(0, 10))
         hdr = ctk.CTkLabel(header_frame, text="Create New Bill", font=("Helvetica", 32, "bold"))
         hdr.pack(anchor="w")
         sub_hdr = ctk.CTkLabel(header_frame, text="Generate dynamic bill for mobile sales", font=("Helvetica", 14), text_color=("gray50", "gray70"))
@@ -23,16 +23,10 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
 
         self.firm_var = ctk.StringVar()
         self.firms = {}
-        
-        firm_frame = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
-        firm_frame.pack(fill="x", pady=(0, 15))
-        ctk.CTkLabel(firm_frame, text="Select Shop:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).pack(side="left", padx=25, pady=20)
-        self.firm_dropdown = ctk.CTkOptionMenu(firm_frame, variable=self.firm_var, values=["Loading..."], font=("Helvetica", 14), height=35)
-        self.firm_dropdown.pack(side="left", padx=10, pady=20)
 
         # Customer Details Card
         cust_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
-        cust_card.pack(fill="x", pady=15)
+        cust_card.pack(fill="x", pady=5)
         
         ctk.CTkLabel(cust_card, text="👤 Customer Details", font=("Helvetica", 18, "bold"), text_color="#3b82f6").pack(anchor="w", padx=25, pady=(20, 15))
         
@@ -63,7 +57,7 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
         # Dynamic Devices Card
         self.products = []
         dev_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
-        dev_card.pack(fill="x", pady=15)
+        dev_card.pack(fill="x", pady=5)
 
         d_header = ctk.CTkFrame(dev_card, fg_color="transparent")
         d_header.pack(fill="x", padx=25, pady=(20, 15))
@@ -86,7 +80,7 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
 
         # Action Area
         action_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
-        action_card.pack(fill="x", pady=(15, 30))
+        action_card.pack(fill="x", pady=(5, 10))
         
         self.lbl_totals = ctk.CTkLabel(action_card, text="₹ 0.00", font=("Helvetica", 36, "bold"), text_color="#10b981")
         self.lbl_totals.pack(side="left", padx=30, pady=25)
@@ -109,7 +103,7 @@ class NewInvoiceFrame(ctk.CTkScrollableFrame):
         firms_data = database.get_firms()
         self.firms = {f"{f[1]}": f for f in firms_data}
         if self.firms:
-            self.firm_dropdown.configure(values=list(self.firms.keys()))
+            # Auto-select the first firm (usually only one)
             self.firm_var.set(list(self.firms.keys())[0])
             
         # Initialize suggestions only for products
