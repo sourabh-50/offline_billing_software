@@ -7,6 +7,7 @@ import database
 import exporter
 from ui_components.autocomplete import ctkAutocompleteEntry
 from datetime import datetime, timedelta
+import backup_service
 
 class SearchFrame(ctk.CTkFrame):
     def __init__(self, parent):
@@ -344,5 +345,198 @@ class ReportsFrame(ctk.CTkFrame):
                 else:
                     import sys
                     subprocess.call(["open" if sys.platform == "darwin" else "xdg-open", path])
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex))
+
+class BackupFrame(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent, fg_color="transparent")
+        
+        # Header Area
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(20, 20))
+        
+        hdr = ctk.CTkLabel(header_frame, text="Data Backup", font=("Helvetica", 32, "bold"))
+        hdr.pack(anchor="w")
+        sub_hdr = ctk.CTkLabel(header_frame, text="Export your sales data and merged bill records", font=("Helvetica", 14), text_color=("gray50", "gray70"))
+        sub_hdr.pack(anchor="w", pady=(5, 0))
+        
+        config_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
+        config_card.pack(fill="x", pady=15)
+        
+        # Centered Input Grid
+        inputs_frame = ctk.CTkFrame(config_card, fg_color="transparent")
+        inputs_frame.pack(pady=40, padx=40)
+        
+        # Timeline Dropdown
+        ctk.CTkLabel(inputs_frame, text="Select Period:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).grid(row=0, column=0, padx=15, sticky="e")
+        self.backup_tl_var = ctk.StringVar(value="Select Period")
+        
+        # Container for date inputs (managed by dropdown)
+        self.date_inputs_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
+        
+        # Year Input Frame (for Custom Year)
+        self.year_input_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
+        self.year_var = ctk.StringVar(value=str(datetime.now().year))
+        self.year_var.trace_add("write", lambda *args: self.validate_buttons())
+        ctk.CTkLabel(self.year_input_frame, text="Enter Year:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).pack(side="left", padx=10)
+        self.year_entry = ctk.CTkEntry(self.year_input_frame, width=100, height=45, font=("Helvetica", 14), textvariable=self.year_var)
+        self.year_entry.pack(side="left")
+
+        def on_backup_tl_change(choice):
+            if choice == "Custom Range":
+                self.date_inputs_frame.grid(row=0, column=2, columnspan=2, sticky="w")
+                self.year_input_frame.grid_remove()
+            elif choice == "Custom Year":
+                self.year_input_frame.grid(row=0, column=2, sticky="w")
+                self.date_inputs_frame.grid_remove()
+            else:
+                self.date_inputs_frame.grid_remove()
+                self.year_input_frame.grid_remove()
+            self.validate_buttons()
+                
+        self.backup_tl_menu = ctk.CTkOptionMenu(inputs_frame, variable=self.backup_tl_var, 
+                                               values=["Today", "This Week", "This Month", "This Year", "Custom Year", "Custom Range", "All Time"],
+                                               command=on_backup_tl_change, width=200, height=45, font=("Helvetica", 14))
+        self.backup_tl_menu.grid(row=0, column=1, padx=15, sticky="w")
+        
+        # Date Inputs inside the sub-frame
+        ctk.CTkLabel(self.date_inputs_frame, text="Start Date:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).pack(side="left", padx=10)
+        s_frame = ctk.CTkFrame(self.date_inputs_frame, fg_color="transparent")
+        s_frame.pack(side="left", padx=5)
+        
+        self.start_var = ctk.StringVar()
+        self.start_var.trace_add("write", lambda *args: self.validate_buttons())
+        self.start_cal = ctkAutocompleteEntry(s_frame, width=150, height=45, placeholder_text="YYYY-MM-DD", textvariable=self.start_var)
+        self.start_cal.pack(side="left")
+        ctk.CTkButton(s_frame, text="📅", width=45, height=45, font=("Helvetica", 18), command=lambda: self.open_calendar(self.start_cal)).pack(side="left", padx=(5,0))
+        
+        ctk.CTkLabel(self.date_inputs_frame, text="End Date:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).pack(side="left", padx=10)
+        e_frame = ctk.CTkFrame(self.date_inputs_frame, fg_color="transparent")
+        e_frame.pack(side="left", padx=5)
+        
+        self.end_var = ctk.StringVar()
+        self.end_var.trace_add("write", lambda *args: self.validate_buttons())
+        self.end_cal = ctkAutocompleteEntry(e_frame, width=150, height=45, placeholder_text="YYYY-MM-DD", textvariable=self.end_var)
+        self.end_cal.pack(side="left")
+        ctk.CTkButton(e_frame, text="📅", width=45, height=45, font=("Helvetica", 18), command=lambda: self.open_calendar(self.end_cal)).pack(side="left", padx=(5,0))
+        
+        actions_frame = ctk.CTkFrame(self, fg_color="transparent")
+        actions_frame.pack(fill="x", pady=(15, 40))
+        btns_frame = ctk.CTkFrame(actions_frame, fg_color="transparent")
+        btns_frame.pack(anchor="center")
+        
+        self.excel_btn = ctk.CTkButton(btns_frame, text="📊 Excel Backup", font=("Helvetica", 16, "bold"), fg_color="#10b981", hover_color="#059669", height=55, width=220, command=self.do_excel_backup)
+        self.excel_btn.pack(side="left", padx=10)
+        
+        self.pdf_btn = ctk.CTkButton(btns_frame, text="📁 Merged PDF Backup", font=("Helvetica", 16, "bold"), fg_color="#3b82f6", hover_color="#2563eb", height=55, width=220, command=self.do_pdf_backup)
+        self.pdf_btn.pack(side="left", padx=10)
+        
+        self.after(100, self.validate_buttons)
+
+    def open_calendar(self, entry_widget):
+        try:
+            from tkcalendar import Calendar
+        except ImportError:
+            messagebox.showerror("Error", "tkcalendar module is not installed.")
+            return
+
+        top = ctk.CTkToplevel(self)
+        top.title("Select Date")
+        x = entry_widget.winfo_rootx()
+        y = entry_widget.winfo_rooty() + entry_widget.winfo_height()
+        top.geometry(f"300x320+{x}+{y}")
+        top.resizable(False, False)
+        top.attributes('-topmost', True)
+        top.transient(self.winfo_toplevel())
+        
+        container = ctk.CTkFrame(top, corner_radius=10)
+        container.pack(fill="both", expand=True, padx=2, pady=2)
+        cal = Calendar(container, selectmode='day', date_pattern='y-mm-dd')
+        cal.pack(padx=10, pady=(10, 5), fill="both", expand=True)
+
+        def set_date(event=None):
+            date_str = cal.get_date()
+            entry_widget.delete(0, 'end')
+            entry_widget.insert(0, date_str)
+            top.destroy()
+            
+        cal.bind("<<CalendarSelected>>", set_date)
+        btn_frame = ctk.CTkFrame(container, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=5)
+        ctk.CTkButton(btn_frame, text="Select", width=120, height=35, command=set_date).pack(side="left", padx=(20, 10), pady=10)
+        ctk.CTkButton(btn_frame, text="Cancel", width=120, height=35, fg_color="transparent", border_width=1, command=top.destroy).pack(side="left", padx=(10, 20), pady=10)
+        top.grab_set()
+
+    def get_active_range(self):
+        choice = self.backup_tl_var.get()
+        now = datetime.now()
+        s, e = "", ""
+        
+        if choice == "Today":
+            s = e = now.strftime("%Y-%m-%d")
+        elif choice == "This Week":
+            s = (now - timedelta(days=now.weekday())).strftime("%Y-%m-%d")
+            e = now.strftime("%Y-%m-%d")
+        elif choice == "This Month":
+            s = now.strftime("%Y-%m-01")
+            e = now.strftime("%Y-%m-%d")
+        elif choice == "This Year":
+            s = now.strftime("%Y-01-01")
+            e = now.strftime("%Y-%m-%d")
+        elif choice == "All Time":
+            s = "2000-01-01"
+            e = "2099-12-31"
+        elif choice == "Custom Year":
+            y = self.year_var.get().strip()
+            if len(y) == 4 and y.isdigit():
+                s = f"{y}-01-01"
+                e = f"{y}-12-31"
+        elif choice == "Custom Range":
+            s = self.start_var.get().strip()
+            e = self.end_var.get().strip()
+            if s == "YYYY-MM-DD" or e == "YYYY-MM-DD":
+                s = e = ""
+        return s, e
+
+    def validate_buttons(self):
+        s, e = self.get_active_range()
+        if s and e:
+            self.excel_btn.configure(state="normal")
+            self.pdf_btn.configure(state="normal")
+        else:
+            self.excel_btn.configure(state="disabled")
+            self.pdf_btn.configure(state="disabled")
+
+    def do_excel_backup(self):
+        tl = self.backup_tl_var.get()
+        s, e = self.get_active_range()
+        import tkinter.filedialog as filedialog
+        save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", initialfile=f"Backup_{tl}_{s}.xlsx", title="Save Excel Backup", filetypes=[("Excel files", "*.xlsx")])
+        if not save_path: return
+        
+        try:
+            final_path = backup_service.export_timeline_backup(tl, save_path, s, e)
+            backup_service.create_backup()
+            messagebox.showinfo("Success", f"Backup saved successfully!\n{final_path}")
+            if os.path.exists(final_path):
+                if os.name == 'nt':
+                    os.startfile(os.path.dirname(final_path))
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex))
+
+    def do_pdf_backup(self):
+        tl = self.backup_tl_var.get()
+        s, e = self.get_active_range()
+        import tkinter.filedialog as filedialog
+        save_path = filedialog.asksaveasfilename(defaultextension=".pdf", initialfile=f"Full_PDF_Backup_{tl}.pdf", title="Save Merged PDF", filetypes=[("PDF files", "*.pdf")])
+        if not save_path: return
+        
+        try:
+            final_path = backup_service.export_pdf_merged(tl, save_path, s, e)
+            messagebox.showinfo("Success", f"Merged PDF saved successfully!\n{final_path}")
+            if os.path.exists(final_path):
+                if os.name == 'nt':
+                    os.startfile(os.path.dirname(final_path))
         except Exception as ex:
             messagebox.showerror("Error", str(ex))

@@ -8,16 +8,23 @@ def create_backup():
     # Full traditional binary backup
     timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H%M%S")
     backup_filename = f"backup_full_{timestamp}.zip"
-    backup_path = os.path.join("backups", backup_filename)
-
+    # Use absolute paths relative to BASE_DIR
+    db_path = os.path.join(database.BASE_DIR, "database.db")
+    inv_dir = os.path.join(database.BASE_DIR, "invoices")
+    backup_dir = os.path.join(database.BASE_DIR, "backups")
+    os.makedirs(backup_dir, exist_ok=True)
+    
+    backup_path = os.path.join(backup_dir, backup_filename)
+    
     with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        if os.path.exists("database.db"):
-            zipf.write("database.db", arcname="database.db")
-        if os.path.exists("invoices"):
-            for root, _, files in os.walk("invoices"):
+        if os.path.exists(db_path):
+            zipf.write(db_path, arcname="database.db")
+        if os.path.exists(inv_dir):
+            for root, _, files in os.walk(inv_dir):
                 for file in files:
                     full_path = os.path.join(root, file)
-                    arc_name = os.path.join("invoices", file)
+                    # Relative name inside the zip
+                    arc_name = os.path.relpath(full_path, database.BASE_DIR)
                     zipf.write(full_path, arcname=arc_name)
     return backup_path
 
@@ -31,7 +38,7 @@ def export_timeline_backup(timeline: str, save_path: str, start_date=None, end_d
     
     now = datetime.datetime.now()
     
-    query = "SELECT i.invoice_number, c.name as Customer_Name, c.mobile, i.date, i.total_amount, ii.product_name, ii.imei FROM Invoices i LEFT JOIN Customers c ON i.customer_id = c.customer_id LEFT JOIN Invoice_Items ii ON i.invoice_id = ii.invoice_id"
+    query = "SELECT i.invoice_number, c.name as Customer_Name, c.mobile, i.date, i.total_amount, ii.product_name, ii.hsn FROM Invoices i LEFT JOIN Customers c ON i.customer_id = c.customer_id LEFT JOIN Invoice_Items ii ON i.invoice_id = ii.invoice_id"
     
     params = ()
     if timeline == "Today":
