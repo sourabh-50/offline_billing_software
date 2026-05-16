@@ -38,7 +38,7 @@ def export_timeline_backup(timeline: str, save_path: str, start_date=None, end_d
     
     now = datetime.datetime.now()
     
-    query = "SELECT i.invoice_number, c.name as Customer_Name, c.mobile, i.date, i.total_amount, ii.product_name, ii.hsn FROM Invoices i LEFT JOIN Customers c ON i.customer_id = c.customer_id LEFT JOIN Invoice_Items ii ON i.invoice_id = ii.invoice_id"
+    query = "SELECT i.invoice_number, c.name as Customer_Name, c.mobile, i.date, i.total_amount, ii.product_name, ii.imei FROM Invoices i LEFT JOIN Customers c ON i.customer_id = c.customer_id LEFT JOIN Invoice_Items ii ON i.invoice_id = ii.invoice_id"
     
     params = ()
     if timeline == "Today":
