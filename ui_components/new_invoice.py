@@ -15,7 +15,7 @@ class NewInvoiceFrame(ctk.CTkFrame):
         
         # Header Area
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        header_frame.pack(fill="x", pady=(0, 10))
+        header_frame.pack(fill="x", pady=(20, 20))
         hdr = ctk.CTkLabel(header_frame, text="Create New Bill", font=("Helvetica", 32, "bold"))
         hdr.pack(anchor="w")
         sub_hdr = ctk.CTkLabel(header_frame, text="Generate dynamic bill for mobile sales", font=("Helvetica", 14), text_color=("gray50", "gray70"))
@@ -26,7 +26,7 @@ class NewInvoiceFrame(ctk.CTkFrame):
 
         # Customer Details Card
         cust_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
-        cust_card.pack(fill="x", pady=5)
+        cust_card.pack(fill="x", pady=15)
         
         ctk.CTkLabel(cust_card, text="👤 Customer Details", font=("Helvetica", 18, "bold"), text_color="#3b82f6").pack(anchor="w", padx=25, pady=(20, 15))
         
@@ -57,7 +57,7 @@ class NewInvoiceFrame(ctk.CTkFrame):
         # Dynamic Devices Card
         self.products = []
         dev_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
-        dev_card.pack(fill="x", pady=5)
+        dev_card.pack(fill="x", pady=15)
 
         d_header = ctk.CTkFrame(dev_card, fg_color="transparent")
         d_header.pack(fill="x", padx=25, pady=(20, 15))
@@ -80,7 +80,7 @@ class NewInvoiceFrame(ctk.CTkFrame):
 
         # Action Area
         action_card = ctk.CTkFrame(self, corner_radius=18, border_width=1, border_color=("gray85", "gray20"))
-        action_card.pack(fill="x", pady=(5, 10))
+        action_card.pack(fill="x", pady=(15, 40))
         
         self.lbl_totals = ctk.CTkLabel(action_card, text="₹ 0.00", font=("Helvetica", 36, "bold"), text_color="#10b981")
         self.lbl_totals.pack(side="left", padx=30, pady=25)
