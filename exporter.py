@@ -2,7 +2,8 @@ import os
 import sqlite3
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
 DB_NAME = "database.db"
@@ -87,28 +88,43 @@ def export_sales_pdf(start_date, end_date, output_path):
     # Table
     y = height - 145
     if rows:
-        # Group to avoid repeating invoice fields unnecessarily, but simple flattened table is fine
-        # Format headers
-        formatted_cols = [c.replace("_", " ").title() for c in cols]
+        styles = getSampleStyleSheet()
+        table_style = ParagraphStyle(
+            'TableStyle',
+            parent=styles['Normal'],
+            fontSize=8,
+            leading=10,
+            alignment=1, # Center
+            wordWrap='CJK'
+        )
+        header_style = ParagraphStyle(
+            'HeaderStyle',
+            parent=styles['Normal'],
+            fontSize=9,
+            leading=11,
+            alignment=1,
+            fontName='Helvetica-Bold'
+        )
+
+        formatted_cols = [Paragraph(c.replace("_", " ").title(), header_style) for c in cols]
         data = [formatted_cols]
         for row in rows:
-            # Convert row to strings
-            data.append([str(val) for val in row])
+            data.append([Paragraph(str(val), table_style) for val in row])
 
-        # Define explicit column widths for precise centering
-        col_widths = [70, 70, 100, 150, 100, 60]
+        # Define explicit column widths for precise centering (A4 is 595pt)
+        col_widths = [65, 70, 100, 140, 100, 60] # Total 535
         table = Table(data, colWidths=col_widths)
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
         ]))
         
-        table_w, table_h = table.wrapOn(c, width - 60, height)
-        # Assuming fits on one page for simplicity, center justify the table
+        table_w, table_h = table.wrapOn(c, width - 40, height)
         table.drawOn(c, (width - table_w) / 2.0, y - table_h)
 
     c.save()

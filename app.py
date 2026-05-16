@@ -280,8 +280,8 @@ class App(ctk.CTk):
             pass
 
         modal.grab_set()         
-        ctk.CTkLabel(modal, text="Excel Data Backup", font=("Helvetica", 24, "bold")).pack(pady=(40, 10))
-        ctk.CTkLabel(modal, text="Select which records to export to Excel:", font=("Helvetica", 15), text_color=("gray50", "gray70")).pack(pady=(0, 35))
+        ctk.CTkLabel(modal, text="Data Backup", font=("Helvetica", 24, "bold")).pack(pady=(40, 10))
+        ctk.CTkLabel(modal, text="Select which records to export:", font=("Helvetica", 15), text_color=("gray50", "gray70")).pack(pady=(0, 35))
         
         timeline_var = ctk.StringVar(value="Select Timeline")
         
