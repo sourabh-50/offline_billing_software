@@ -128,15 +128,28 @@ class ReportsFrame(ctk.CTkFrame):
         # Container for date inputs (managed by dropdown)
         self.date_inputs_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
         
+        # Year Input Frame (for Custom Year)
+        self.year_input_frame = ctk.CTkFrame(inputs_frame, fg_color="transparent")
+        self.year_var = ctk.StringVar(value=str(datetime.now().year))
+        self.year_var.trace_add("write", lambda *args: self.validate_buttons())
+        ctk.CTkLabel(self.year_input_frame, text="Enter Year:", font=("Helvetica", 14, "bold"), text_color=("gray40", "gray70")).pack(side="left", padx=10)
+        self.year_entry = ctk.CTkEntry(self.year_input_frame, width=100, height=45, font=("Helvetica", 14), textvariable=self.year_var)
+        self.year_entry.pack(side="left")
+
         def on_report_tl_change(choice):
             if choice == "Custom Range":
                 self.date_inputs_frame.grid(row=0, column=2, columnspan=2, sticky="w")
+                self.year_input_frame.grid_remove()
+            elif choice == "Custom Year":
+                self.year_input_frame.grid(row=0, column=2, sticky="w")
+                self.date_inputs_frame.grid_remove()
             else:
                 self.date_inputs_frame.grid_remove()
+                self.year_input_frame.grid_remove()
             self.validate_buttons()
                 
         self.report_tl_menu = ctk.CTkOptionMenu(inputs_frame, variable=self.report_tl_var, 
-                                               values=["Today", "This Week", "This Month", "This Year", "Previous Year", "Custom Range"],
+                                               values=["Today", "This Week", "This Month", "This Year", "Custom Year", "Custom Range"],
                                                command=on_report_tl_change, width=200, height=45, font=("Helvetica", 14))
         self.report_tl_menu.grid(row=0, column=1, padx=15, sticky="w")
         
@@ -271,10 +284,11 @@ class ReportsFrame(ctk.CTkFrame):
         elif choice == "This Year":
             s = now.strftime("%Y-01-01")
             e = now.strftime("%Y-%m-%d")
-        elif choice == "Previous Year":
-            prev_year = now.year - 1
-            s = f"{prev_year}-01-01"
-            e = f"{prev_year}-12-31"
+        elif choice == "Custom Year":
+            y = self.year_var.get().strip()
+            if len(y) == 4 and y.isdigit():
+                s = f"{y}-01-01"
+                e = f"{y}-12-31"
         elif choice == "Custom Range":
             s = self.start_cal.get().strip()
             e = self.end_cal.get().strip()

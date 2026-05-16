@@ -290,18 +290,28 @@ class App(ctk.CTk):
         
         start_date_var = ctk.StringVar()
         end_date_var = ctk.StringVar()
+        custom_year_var = ctk.StringVar(value=str(datetime.datetime.now().year))
         
         def on_timeline_change(choice):
+            custom_dates_frame.pack_forget()
+            custom_year_frame.pack_forget()
             if choice == "Custom Range":
                 custom_dates_frame.pack(pady=10)
                 modal.geometry("480x520")
+            elif choice == "Custom Year":
+                custom_year_frame.pack(pady=10)
+                modal.geometry("480x450")
             else:
-                custom_dates_frame.pack_forget()
                 modal.geometry("480x380")
         
-        dropdown = ctk.CTkOptionMenu(modal, variable=timeline_var, values=["Today", "This Week", "This Month", "This Year", "All Time", "Custom Range"], 
+        dropdown = ctk.CTkOptionMenu(modal, variable=timeline_var, values=["Today", "This Week", "This Month", "This Year", "Custom Year", "All Time", "Custom Range"], 
                                     width=300, height=50, font=("Helvetica", 15), command=on_timeline_change)
         dropdown.pack(pady=10)
+        
+        # Setup Custom Year Input
+        custom_year_frame = ctk.CTkFrame(modal, fg_color="transparent")
+        ctk.CTkLabel(custom_year_frame, text="Year:", font=("Helvetica", 14, "bold")).pack(side="left", padx=10)
+        ctk.CTkEntry(custom_year_frame, width=150, height=40, textvariable=custom_year_var).pack(side="left", padx=5)
         
         # Setup Custom Date Inputs
         row1 = ctk.CTkFrame(custom_dates_frame, fg_color="transparent")
@@ -324,8 +334,13 @@ class App(ctk.CTk):
                 
             s = start_date_var.get()
             e = end_date_var.get()
+            cy = custom_year_var.get().strip()
+            
             if tl == "Custom Range" and (not s or not e):
                 messagebox.showwarning("Input Required", "Please enter both Start and End dates for Custom Range.")
+                return
+            if tl == "Custom Year" and not cy:
+                messagebox.showwarning("Input Required", "Please enter a valid year.")
                 return
 
             import tkinter.filedialog as filedialog
@@ -334,6 +349,11 @@ class App(ctk.CTk):
                 return
             
             try:
+                # If custom year, we can just set s and e here or handle in service
+                if tl == "Custom Year":
+                    s = f"{cy}-01-01"
+                    e = f"{cy}-12-31"
+                    
                 final_path = backup_service.export_timeline_backup(tl, save_path, s, e)
                 backup_service.create_backup()
                 messagebox.showinfo("Success", f"Excel backup saved to:\n{final_path}")
@@ -351,8 +371,13 @@ class App(ctk.CTk):
                 
             s = start_date_var.get()
             e = end_date_var.get()
+            cy = custom_year_var.get().strip()
+            
             if tl == "Custom Range" and (not s or not e):
                 messagebox.showwarning("Input Required", "Please enter both Start and End dates for Custom Range.")
+                return
+            if tl == "Custom Year" and not cy:
+                messagebox.showwarning("Input Required", "Please enter a valid year.")
                 return
 
             import tkinter.filedialog as filedialog
@@ -361,6 +386,10 @@ class App(ctk.CTk):
                 return
             
             try:
+                if tl == "Custom Year":
+                    s = f"{cy}-01-01"
+                    e = f"{cy}-12-31"
+                    
                 final_path = backup_service.export_pdf_merged(tl, save_path, s, e)
                 messagebox.showinfo("Success", f"Merged PDF saved to:\n{final_path}")
                 modal.destroy()

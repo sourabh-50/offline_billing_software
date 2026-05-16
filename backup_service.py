@@ -50,7 +50,7 @@ def export_timeline_backup(timeline: str, save_path: str, start_date=None, end_d
         start = now.strftime("%Y-01-01")
         query += " WHERE substr(i.date, 1, 10) >= ?"
         params = (start,)
-    elif timeline == "Custom Range" and start_date and end_date:
+    elif timeline in ["Custom Range", "Custom Year"] and start_date and end_date:
         query += " WHERE substr(i.date, 1, 10) >= ? AND substr(i.date, 1, 10) <= ?"
         params = (start_date, end_date)
     else:
@@ -123,7 +123,7 @@ def export_pdf_merged(timeline: str, save_path: str, start_date=None, end_date=N
         start = now.strftime("%Y-01-01")
         query += " WHERE substr(date, 1, 10) >= ?"
         params = (start,)
-    elif timeline == "Custom Range" and start_date and end_date:
+    elif timeline in ["Custom Range", "Custom Year"] and start_date and end_date:
         query += " WHERE substr(date, 1, 10) >= ? AND substr(date, 1, 10) <= ?"
         params = (start_date, end_date)
     
