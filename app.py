@@ -285,8 +285,9 @@ class App(ctk.CTk):
         
         timeline_var = ctk.StringVar(value="Select Timeline")
         
-        # Container for custom dates
+        # Container for custom dates/year - Define BEFORE the callback
         custom_dates_frame = ctk.CTkFrame(modal, fg_color="transparent")
+        custom_year_frame = ctk.CTkFrame(modal, fg_color="transparent")
         
         start_date_var = ctk.StringVar()
         end_date_var = ctk.StringVar()
@@ -304,12 +305,12 @@ class App(ctk.CTk):
             else:
                 modal.geometry("480x380")
         
-        dropdown = ctk.CTkOptionMenu(modal, variable=timeline_var, values=["Today", "This Week", "This Month", "This Year", "Custom Year", "All Time", "Custom Range"], 
+        dropdown = ctk.CTkOptionMenu(modal, variable=timeline_var, 
+                                    values=["Today", "This Week", "This Month", "This Year", "Custom Year", "All Time", "Custom Range"], 
                                     width=300, height=50, font=("Helvetica", 15), command=on_timeline_change)
         dropdown.pack(pady=10)
         
         # Setup Custom Year Input
-        custom_year_frame = ctk.CTkFrame(modal, fg_color="transparent")
         ctk.CTkLabel(custom_year_frame, text="Year:", font=("Helvetica", 14, "bold")).pack(side="left", padx=10)
         ctk.CTkEntry(custom_year_frame, width=150, height=40, textvariable=custom_year_var).pack(side="left", padx=5)
         
@@ -317,14 +318,12 @@ class App(ctk.CTk):
         row1 = ctk.CTkFrame(custom_dates_frame, fg_color="transparent")
         row1.pack(pady=5)
         ctk.CTkLabel(row1, text="From:", font=("Helvetica", 12, "bold")).pack(side="left", padx=5)
-        start_ent = ctk.CTkEntry(row1, placeholder_text="YYYY-MM-DD", width=150, textvariable=start_date_var)
-        start_ent.pack(side="left", padx=5)
+        ctk.CTkEntry(row1, placeholder_text="YYYY-MM-DD", width=150, textvariable=start_date_var).pack(side="left", padx=5)
         
         row2 = ctk.CTkFrame(custom_dates_frame, fg_color="transparent")
         row2.pack(pady=5)
         ctk.CTkLabel(row2, text="To:", font=("Helvetica", 12, "bold")).pack(side="left", padx=15)
-        end_ent = ctk.CTkEntry(row2, placeholder_text="YYYY-MM-DD", width=150, textvariable=end_date_var)
-        end_ent.pack(side="left", padx=5)
+        ctk.CTkEntry(row2, placeholder_text="YYYY-MM-DD", width=150, textvariable=end_date_var).pack(side="left", padx=5)
         
         def process_excel_backup():
             tl = timeline_var.get()
