@@ -316,6 +316,14 @@ class ReportsFrame(ctk.CTkFrame):
             path = os.path.join(database.BASE_DIR, "reports", f"Sales_{s}_to_{e}.xlsx")
             exporter.export_sales_excel(s, e, path)
             messagebox.showinfo("Success", f"Excel report saved to:\n{path}")
+            
+            # Auto-open the generated file
+            if os.path.exists(path):
+                if os.name == 'nt':
+                    os.startfile(path)
+                else:
+                    import sys
+                    subprocess.call(["open" if sys.platform == "darwin" else "xdg-open", path])
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
 
@@ -328,5 +336,13 @@ class ReportsFrame(ctk.CTkFrame):
             path = os.path.join(database.BASE_DIR, "reports", f"Sales_{s}_to_{e}.pdf")
             exporter.export_sales_pdf(s, e, path)
             messagebox.showinfo("Success", f"PDF report saved to:\n{path}")
+            
+            # Auto-open the generated file
+            if os.path.exists(path):
+                if os.name == 'nt':
+                    os.startfile(path)
+                else:
+                    import sys
+                    subprocess.call(["open" if sys.platform == "darwin" else "xdg-open", path])
         except Exception as ex:
             messagebox.showerror("Error", str(ex))

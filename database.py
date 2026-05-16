@@ -14,10 +14,10 @@ else:
 DB_NAME = os.path.join(BASE_DIR, "database.db")
 
 def init_db():
-    # Create required directories
-    os.makedirs("invoices", exist_ok=True)
-    os.makedirs("reports", exist_ok=True)
-    os.makedirs("backups", exist_ok=True)
+    # Create required directories relative to BASE_DIR
+    os.makedirs(os.path.join(BASE_DIR, "invoices"), exist_ok=True)
+    os.makedirs(os.path.join(BASE_DIR, "reports"), exist_ok=True)
+    os.makedirs(os.path.join(BASE_DIR, "backups"), exist_ok=True)
 
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()

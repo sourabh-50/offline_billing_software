@@ -6,7 +6,7 @@ from reportlab.platypus import Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
-DB_NAME = "database.db"
+from database import DB_NAME
 
 def get_sales_data(start_date=None, end_date=None):
     conn = sqlite3.connect(DB_NAME)
