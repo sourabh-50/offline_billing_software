@@ -176,7 +176,8 @@ class ReportsFrame(ctk.CTkFrame):
         self.pdf_btn = ctk.CTkButton(btns_frame, text="📄 Export to PDF", font=("Helvetica", 16, "bold"), fg_color="#3b82f6", hover_color="#2563eb", height=55, width=220, command=self.export_pdf)
         self.pdf_btn.pack(side="left", padx=10)
         
-        self.validate_buttons()
+        # Initial validation to ensure buttons are locked on start
+        self.after(100, self.validate_buttons)
 
     def open_calendar(self, entry_widget):
         try:
@@ -286,11 +287,11 @@ class ReportsFrame(ctk.CTkFrame):
     def validate_buttons(self):
         s, e = self.get_active_range()
         if s and e:
-            self.excel_btn.configure(state="normal", opacity=1.0)
-            self.pdf_btn.configure(state="normal", opacity=1.0)
+            self.excel_btn.configure(state="normal")
+            self.pdf_btn.configure(state="normal")
         else:
-            self.excel_btn.configure(state="disabled", opacity=0.6)
-            self.pdf_btn.configure(state="disabled", opacity=0.6)
+            self.excel_btn.configure(state="disabled")
+            self.pdf_btn.configure(state="disabled")
 
     def export_excel(self):
         try:

@@ -9,10 +9,13 @@ class StockFrame(ctk.CTkFrame):
         # Header Area
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(fill="x", pady=(0, 25))
-        hdr = ctk.CTkLabel(header_frame, text="Stock Management", font=("Helvetica", 32, "bold"))
+        title_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        title_frame.pack(side="left", fill="both", expand=True)
+        
+        hdr = ctk.CTkLabel(title_frame, text="Stock Management", font=("Helvetica", 32, "bold"))
         hdr.pack(anchor="w")
-        sub_hdr = ctk.CTkLabel(header_frame, text="Track and manage your mobile inventory", font=("Helvetica", 14), text_color=("gray50", "gray70"))
-        sub_hdr.pack(side="left", pady=(5, 0))
+        sub_hdr = ctk.CTkLabel(title_frame, text="Track and manage your mobile inventory", font=("Helvetica", 14), text_color=("gray50", "gray70"))
+        sub_hdr.pack(anchor="w", pady=(5, 0))
         
         # Total Stock Card at top right
         self.stock_summary_card = ctk.CTkFrame(header_frame, corner_radius=15, fg_color=("#ffffff", "#1e1e1e"), border_width=1, border_color=("gray85", "gray20"))
